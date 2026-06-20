@@ -1,66 +1,45 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import PromoBar from "@/components/PromoBar";
+import Nav from "@/components/Nav";
+import Grain from "@/components/Grain";
+import Hero from "@/components/Hero";
+import Story from "@/components/Story";
+import Journey from "@/components/Journey";
+import ChefSpecials from "@/components/ChefSpecials";
+import Reviews from "@/components/Reviews";
+import Visit from "@/components/Visit";
+import SiteFooter from "@/components/SiteFooter";
+import AiConcierge from "@/components/AiConcierge";
+import { getSiteContent, getChefSpecials } from "@/lib/content";
 
-export default function Home() {
+// Content is editable from the admin — render on each request so edits show up.
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const [c, specials] = await Promise.all([
+    getSiteContent(),
+    getChefSpecials(),
+  ]);
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <>
+      <PromoBar message={c.promo.message} />
+      <Nav content={c.nav} />
+      <Grain />
+
+      <div
+        id="vc-stack"
+        style={{ position: "relative", width: "100%", background: "#071821" }}
+      >
+        <Hero content={c.hero} />
+        <Story content={c.story} />
+        <Journey content={c.journey} />
+        <ChefSpecials content={c.chefSpecials} dishes={specials} />
+        <Reviews content={c.reviews} />
+        <Visit content={c.visit} />
+        <SiteFooter content={c.footer} />
+      </div>
+
+      <AiConcierge />
+    </>
   );
 }

@@ -1,0 +1,121 @@
+/* ============================================================================
+   Veycho — admin + auth design system (Tailwind v4)
+   ----------------------------------------------------------------------------
+   This file is imported ONLY by app/(admin)/layout.tsx, so Tailwind's preflight
+   and these tokens load on /admin and /auth routes only — the public marketing
+   pages (app/globals.css, inline-styled) never pull in Tailwind.
+
+   Ported from the original luxury-dark design system and retuned to the Veycho
+   brand: deep teal #071821, gold #edb63f, warm cream #f4ead6, with the project
+   display font (Baloo 2) for headings and Hanken Grotesk for body.
+   ============================================================================ */
+
+@import "tailwindcss";
+
+@theme inline {
+  --radius: 0.125rem; /* sharp, editorial */
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--foreground);
+  --color-popover: var(--surface-elevated);
+  --color-popover-foreground: var(--foreground);
+
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-gold-bright: var(--gold-bright);
+  --color-gold-foreground: var(--gold-foreground);
+
+  --color-primary: var(--gold);
+  --color-primary-foreground: var(--gold-foreground);
+  --color-secondary: var(--surface);
+  --color-secondary-foreground: var(--foreground);
+  --color-muted: var(--surface);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--gold-soft);
+  --color-accent-foreground: var(--background);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--gold);
+
+  /* Match the project's loaded next/font families (see app/layout.tsx). */
+  --font-serif: var(--font-baloo), "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-baloo), ui-serif, Georgia, serif;
+}
+
+:root {
+  /* Veycho brand — single dark theme */
+  --background: #071821;       /* deep teal */
+  --bg-secondary: #0b212b;     /* panels */
+  --surface: #102a34;          /* inputs / cards */
+  --surface-elevated: #16343f; /* popovers / modals */
+
+  --foreground: #f4ead6;       /* warm cream */
+  --muted-foreground: #9fb0ad; /* muted teal-gray */
+
+  /* Gold spectrum */
+  --gold: #edb63f;
+  --gold-soft: #e6c264;
+  --gold-bright: #f7d68a;
+  --gold-foreground: #071821;
+
+  --border: rgba(244, 234, 214, 0.12);
+  --input: rgba(244, 234, 214, 0.16);
+  --destructive: #e5484d;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4, h5 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+}
+
+/* ------- Editorial utilities (ported) ------- */
+
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+@utility eyebrow-muted {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+@utility border-gold-hairline {
+  border: 1px solid color-mix(in oklab, var(--gold) 35%, transparent);
+}
+
+@keyframes gold-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--gold) 50%, transparent); }
+  50% { box-shadow: 0 0 0 14px color-mix(in oklab, var(--gold) 0%, transparent); }
+}
+
+@utility gold-pulse {
+  animation: gold-pulse 2.4s ease-out infinite;
+}
