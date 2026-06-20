@@ -15,9 +15,16 @@ body {
   background: #071821;
   font-family: var(--font-hanken), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  /* Stop iOS Safari / Android Chrome from auto-inflating text in wide
+     `white-space: nowrap` blocks (the marquees). Without this the PromoBar
+     marquee balloons on real phones and overlaps the navbar below it — a
+     real-device-only bug that never reproduces in DevTools device mode. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   /* Full-bleed decorations (scallops, marquee) extend past the right edge.
      `clip` kills the horizontal scrollbar WITHOUT making the root a scroll
-     container — using `hidden` here would break the ChefSpecials sticky pin. */
+     container — `hidden` here would break the Chef Specials sticky pin and the
+     Journey scroll-linked fan, which both measure against window scroll. */
   overflow-x: clip;
 }
 
@@ -247,13 +254,25 @@ html.lenis body {
 .vc-marquee-track:hover {
   animation-play-state: paused;
 }
+/* Testimonial cards ripple on every edge — the wavy silhouette is a per-card SVG
+   mask built in Reviews.tsx (same smooth cosine bump as the Scallop dividers), so
+   only the hover lift lives here. */
 .vc-review-card {
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.35s ease;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .vc-review-card:hover {
   transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 24px 46px rgba(6, 20, 27, 0.32);
+}
+
+/* The shadow lives on the (un-masked) wrapper, not the card: a mask clips an
+   element's own box-shadow away, so we use a drop-shadow filter here that hugs
+   the scalloped silhouette and lifts on hover. */
+.vc-review-wrap {
+  filter: drop-shadow(0 14px 26px rgba(6, 20, 27, 0.28));
+  transition: filter 0.35s ease;
+}
+.vc-review-wrap:hover {
+  filter: drop-shadow(0 22px 40px rgba(6, 20, 27, 0.38));
 }
 
 /* Kill 1px sub-pixel seams between stacked sections (the dark stack bg peeking
@@ -306,6 +325,17 @@ html.lenis body {
   }
   100% {
     transform: rotate(-3deg) translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+/* mobile: full-screen panel slides up, no rotation (which would clip off-screen) */
+@keyframes vcb-pop-panel-m {
+  0% {
+    transform: translateY(36px) scale(0.98);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
     opacity: 1;
   }
 }

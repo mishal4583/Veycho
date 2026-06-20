@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useEffect, useState, type CSSProperties } from "react";
 import { scrollToId } from "@/lib/scroll";
 import { DEFAULT_CONTENT, type NavContent } from "@/lib/content-defaults";
+import { WAVES, WAVE_DEPTH, WAVE_TILE, waveBg } from "@/lib/wave";
+import { usePageTransition } from "./PageTransition";
+import TransitionLink from "./TransitionLink";
 
 const pill = {
   fontFamily: "var(--font-baloo), sans-serif",
@@ -30,26 +33,8 @@ function sectionIsLight(el: Element): boolean {
   return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.55;
 }
 
-// ---- rising wavy curtain geometry (mirrors components/Scallop.tsx) ----
-const WAVE_TILE = 160; // one bump period (px)
-const WAVE_DEPTH = 70; // how far each bump reaches up
-
-/** A repeating SVG band: solid color below a row of rounded upward bumps. */
-function waveBg(color: string): string {
-  const w = WAVE_TILE;
-  const h = WAVE_DEPTH;
-  const q = w / 4;
-  const d = `M0,${h} C${q},${h} ${q},0 ${w / 2},0 C${w - q},0 ${w - q},${h} ${w},${h} Z`;
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}' preserveAspectRatio='none'><path d='${d}' fill='${color}'/></svg>`;
-  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
-}
-
-// Stacked curtain layers (later = drawn on top). Gold leads in, the deep teal
-// settles last and becomes the menu background.
-const WAVES = [
-  { color: "#edb63f", inDelay: 0, outDelay: 0.12 },
-  { color: "#0b2c39", inDelay: 0.1, outDelay: 0.05 },
-];
+// Curtain geometry (WAVE_TILE/WAVE_DEPTH/waveBg/WAVES) is shared with the
+// site-wide page transition — see lib/wave.ts.
 
 const LINKS = [
   { label: "Menu", kind: "route", href: "/menu", note: "Tonight’s composed plates" },
@@ -57,11 +42,56 @@ const LINKS = [
   { label: "Gallery", kind: "route", href: "/gallery", note: "Inside Veycho" },
 ] as const;
 
+/* ---- mobile "sticker": a hand-drawn, wavy-edged ellipse badge ----
+   A closed SVG path traced around an ellipse whose radius gently undulates
+   (cos(bumps·θ)), smoothed through its points with a Catmull-Rom → cubic
+   conversion so the edge reads as an organic wavy oval, not a gear. */
+const STICKER_W = 184;
+const STICKER_H = 100;
+
+function wavyEllipsePath(w: number, h: number, bumps: number, amp: number, pad: number): string {
+  const cx = w / 2;
+  const cy = h / 2;
+  const rx = w / 2 - amp - pad;
+  const ry = h / 2 - amp - pad;
+  const steps = bumps * 6;
+  const pts: Array<[number, number]> = [];
+  for (let i = 0; i < steps; i++) {
+    const a = (i / steps) * Math.PI * 2;
+    const mod = amp * Math.cos(bumps * a);
+    pts.push([cx + (rx + mod) * Math.cos(a), cy + (ry + mod) * Math.sin(a)]);
+  }
+  const n = pts.length;
+  const f = (x: number) => x.toFixed(1);
+  let d = `M${f(pts[0][0])},${f(pts[0][1])}`;
+  for (let i = 0; i < n; i++) {
+    const p0 = pts[(i - 1 + n) % n];
+    const p1 = pts[i];
+    const p2 = pts[(i + 1) % n];
+    const p3 = pts[(i + 2) % n];
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6;
+    const c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6;
+    const c2y = p2[1] - (p3[1] - p1[1]) / 6;
+    d += ` C${f(c1x)},${f(c1y)} ${f(c2x)},${f(c2y)} ${f(p2[0])},${f(p2[1])}`;
+  }
+  return `${d}Z`;
+}
+
+const STICKER_BG = (() => {
+  const d = wavyEllipsePath(STICKER_W, STICKER_H, 9, 3.5, 3);
+  const svg =
+    `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${STICKER_W} ${STICKER_H}'>` +
+    `<path d='${d}' fill='#0b2c39' stroke='#edb63f' stroke-width='2.5'/></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+})();
+
 export default function Nav({
   content = DEFAULT_CONTENT.nav,
 }: {
   content?: NavContent;
 }) {
+  const { navigate } = usePageTransition();
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [isMobile, setIsMobile] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -132,9 +162,16 @@ export default function Nav({
   }, [menuOpen]);
 
   const goVisit = () => {
+    // The menu is already a full-screen curtain, so hand straight off to the
+    // page transition (immediate = no second rise), scroll behind it, reveal.
     setMenuOpen(false);
-    // let the curtain start receding, then scroll through Lenis
-    setTimeout(() => scrollToId("visit"), 460);
+    navigate({ type: "scroll", id: "visit" }, { immediate: true });
+  };
+
+  // Tapping the wordmark inside the open menu goes home (top), same hand-off.
+  const goHome = () => {
+    setMenuOpen(false);
+    navigate({ type: "scroll", id: "top" }, { immediate: true });
   };
 
   // On mobile the bar is a solid dark rectangle, so force the light-on-dark set.
@@ -142,71 +179,73 @@ export default function Nav({
 
   return (
     <>
-      <nav
-        style={{
-          position: "fixed",
-          top: 34,
-          left: 0,
-          width: "100%",
-          zIndex: 80,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: isMobile ? "12px 18px" : "14px 38px",
-          background: isMobile ? "#071821" : "transparent",
-          boxShadow: isMobile ? "0 8px 24px rgba(0,0,0,.28)" : "none",
-        }}
-      >
-        {/* left: Veycho wordmark (was the MENU button) */}
-        <a
-          href="#top"
-          onClick={(e) => {
-            e.preventDefault();
-            scrollToId("top");
-          }}
+      {/* ---- Desktop: transparent top bar with wordmark + pills ---- */}
+      {!isMobile && (
+        <nav
           style={{
-            fontFamily: "var(--font-baloo), sans-serif",
-            fontWeight: 800,
-            fontSize: isMobile ? 24 : 30,
-            color: t.ink,
-            textDecoration: "none",
-            letterSpacing: "-.02em",
-            lineHeight: 1,
-            transition: "color .3s ease",
+            position: "fixed",
+            top: 34,
+            left: 0,
+            width: "100%",
+            zIndex: 80,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "14px 38px",
+            background: "transparent",
+            boxShadow: "none",
           }}
         >
-          Veycho
-        </a>
+          {/* left: Veycho wordmark */}
+          <a
+            href="#top"
+            onClick={(e) => {
+              e.preventDefault();
+              scrollToId("top");
+            }}
+            style={{
+              fontFamily: "var(--font-baloo), sans-serif",
+              fontWeight: 800,
+              fontSize: 30,
+              color: t.ink,
+              textDecoration: "none",
+              letterSpacing: "-.02em",
+              lineHeight: 1,
+              transition: "color .3s ease",
+            }}
+          >
+            Veycho
+          </a>
 
-        {!isMobile && (
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Link
+            <TransitionLink
               href="/gallery"
               style={{ ...pill, background: "transparent", color: t.ink, border: `2px solid ${t.ink}` }}
             >
               {content.galleryLabel}
-            </Link>
-            <Link
+            </TransitionLink>
+            <TransitionLink
               href="/menu"
               style={{ ...pill, background: t.menuBg, color: t.menuText, border: `2px solid ${t.menuBg}` }}
             >
               {content.menuLabel}
-            </Link>
+            </TransitionLink>
             <a
               href="#visit"
               onClick={(e) => {
                 e.preventDefault();
-                scrollToId("visit");
+                navigate({ type: "scroll", id: "visit" });
               }}
               style={{ ...pill, background: "transparent", color: t.ink, border: `2px solid ${t.ink}` }}
             >
               {content.visitLabel}
             </a>
           </div>
-        )}
-      </nav>
+        </nav>
+      )}
 
-      {/* ---- Mobile: hamburger toggle (sits above the overlay so it morphs to ✕) ---- */}
+      {/* ---- Mobile: wavy "sticker" badge — brand + hamburger in one. Sits
+           above the overlay so its lines morph to ✕ and it doubles as close. ---- */}
       {isMobile && (
         <button
           aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -214,40 +253,85 @@ export default function Nav({
           onClick={() => setMenuOpen((o) => !o)}
           style={{
             position: "fixed",
-            top: 36,
-            right: 16,
+            top: 40,
+            left: 14,
             zIndex: 10001,
-            width: 46,
-            height: 46,
+            width: STICKER_W,
+            height: STICKER_H,
             border: "none",
             background: "transparent",
-            cursor: "pointer",
             padding: 0,
+            cursor: "pointer",
+            transform: menuOpen ? "rotate(2deg) scale(1.04)" : "rotate(-5deg)",
+            transition: "transform .45s cubic-bezier(.34,1.3,.5,1)",
+            filter: "drop-shadow(0 10px 20px rgba(0,0,0,.34))",
           }}
         >
-          {[0, 1, 2].map((i) => (
-            <span
-              key={i}
-              style={{
-                position: "absolute",
-                left: "50%",
-                top: "50%",
-                width: 26,
-                height: 2.5,
-                marginLeft: -13,
-                marginTop: -1.25,
-                borderRadius: 2,
-                background: "#edb63f",
-                transition: "transform .4s cubic-bezier(.76,0,.24,1), opacity .2s ease",
-                transform: menuOpen
-                  ? i === 1
-                    ? "scaleX(0)"
-                    : `rotate(${i === 0 ? 45 : -45}deg)`
-                  : `translateY(${(i - 1) * 7}px)`,
-                opacity: menuOpen && i === 1 ? 0 : 1,
+          {/* wavy teal blob with a gold hand-drawn outline */}
+          <span
+            aria-hidden
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage: STICKER_BG,
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "100% 100%",
+            }}
+          />
+          {/* brand + hamburger, riding the sticker's tilt */}
+          <span
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 12,
+            }}
+          >
+            <a
+              href="#top"
+              onClick={(e) => {
+                e.preventDefault();
+                goHome();
               }}
-            />
-          ))}
+              style={{
+                fontFamily: "var(--font-baloo), sans-serif",
+                fontWeight: 800,
+                fontSize: 23,
+                letterSpacing: "-.02em",
+                color: "#f4ead6",
+                lineHeight: 1,
+                textDecoration: "none",
+              }}
+            >
+              Veycho
+            </a>
+            <span style={{ position: "relative", width: 23, height: 16, flex: "none" }}>
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: "50%",
+                    width: 23,
+                    height: 2.6,
+                    marginTop: -1.3,
+                    borderRadius: 2,
+                    background: "#edb63f",
+                    transition: "transform .4s cubic-bezier(.76,0,.24,1), opacity .2s ease",
+                    transform: menuOpen
+                      ? i === 1
+                        ? "scaleX(0)"
+                        : `rotate(${i === 0 ? 45 : -45}deg)`
+                      : `translateY(${(i - 1) * 7}px)`,
+                    opacity: menuOpen && i === 1 ? 0 : 1,
+                  }}
+                />
+              ))}
+            </span>
+          </span>
         </button>
       )}
 
@@ -324,20 +408,8 @@ export default function Nav({
               padding: "46px 26px 38px",
             }}
           >
-            {/* wordmark echoes the bar */}
-            <span
-              style={{
-                fontFamily: "var(--font-baloo), sans-serif",
-                fontWeight: 800,
-                fontSize: 24,
-                letterSpacing: "-.02em",
-                color: "#f4ead6",
-                opacity: menuOpen ? 1 : 0,
-                transition: "opacity .4s ease .15s",
-              }}
-            >
-              Veycho
-            </span>
+            {/* brand lives in the sticker now (top-left), so the menu just
+                opens straight into the links */}
 
             {/* big links */}
             <nav
@@ -418,7 +490,18 @@ export default function Nav({
                   <Link
                     key={l.label}
                     href={l.href}
-                    onClick={() => setMenuOpen(false)}
+                    onClick={(e) => {
+                      if (
+                        e.metaKey || e.ctrlKey || e.shiftKey ||
+                        e.altKey || e.button !== 0
+                      ) {
+                        return; // let the browser open a new tab
+                      }
+                      e.preventDefault();
+                      setMenuOpen(false);
+                      // Menu is already covering — hand off without a second rise.
+                      navigate({ type: "route", href: l.href }, { immediate: true });
+                    }}
                     style={{ textDecoration: "none", ...reveal }}
                   >
                     {inner}

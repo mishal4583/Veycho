@@ -11,6 +11,13 @@ import { useEffect, useRef } from "react";
  *    again and again until it's gone; it refills itself after a short pause.
  *
  * Mouse only — touch devices keep the native cursor.
+ *
+ * The native cursor is hidden globally via `html.vc-cursor-on *`. That class is
+ * lifted (so the OS cursor comes back) whenever the burger can't track the
+ * pointer: over a cross-origin iframe (the Google map) or while a focus-stealing
+ * browser popup is up (native <select>/autofill dropdowns, alert(), devtools,
+ * a new tab/window, or clicking into the map). It's restored on the next move
+ * back over the page.
  */
 export default function CustomCursor() {
   const ref = useRef<HTMLDivElement>(null);
@@ -25,10 +32,11 @@ export default function CustomCursor() {
     const burger = el.querySelector<HTMLElement>(".vc-burger");
     if (!burger) return;
 
+    const root = document.documentElement;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const lerp = reduce ? 1 : 0.16; // lower = laggier trail
 
-    document.documentElement.classList.add("vc-cursor-on");
+    root.classList.add("vc-cursor-on");
 
     let tx = window.innerWidth / 2;
     let ty = window.innerHeight / 2;
@@ -40,7 +48,35 @@ export default function CustomCursor() {
     let spillTimer = 0;
     let resetTimer = 0;
     let chompTimer = 0;
-    let overIframe = false;
+    // true while the burger is suppressed and the native cursor handed back
+    // (over the map iframe, or while a focus-stealing popup is open).
+    let disabled = false;
+
+    // Hand the native cursor back: hide the burger and drop `vc-cursor-on` so the
+    // global `cursor:none` no longer applies (otherwise the pointer is invisible
+    // over iframes / popups, which the burger can't paint over).
+    const disable = () => {
+      if (disabled) return;
+      disabled = true;
+      shown = false;
+      el.style.opacity = "0";
+      root.classList.remove("vc-cursor-on");
+    };
+
+    // Back on the page: re-hide the native cursor, snap the burger to the
+    // re-entry point (no long slide), and force a re-reveal on the next frame.
+    const enableAt = (x: number, y: number) => {
+      if (!disabled) return;
+      disabled = false;
+      root.classList.add("vc-cursor-on");
+      cx = x;
+      cy = y;
+      shown = false;
+    };
+
+    const isEmbed = (t: EventTarget | null) =>
+      t instanceof HTMLElement &&
+      (t.tagName === "IFRAME" || t.tagName === "EMBED" || t.tagName === "OBJECT");
 
     // ---- bites: circular chunks masked out of the burger, one per click ----
     const BITES = [
@@ -119,15 +155,14 @@ export default function CustomCursor() {
     const onMove = (e: MouseEvent) => {
       tx = e.clientX;
       ty = e.clientY;
-      if (overIframe) {
-        // Back on the page after leaving the map/iframe — re-enable cursor:none,
-        // snap to the re-entry point (no long slide), and force a re-reveal.
-        overIframe = false;
-        document.documentElement.classList.add("vc-cursor-on");
-        cx = tx;
-        cy = ty;
-        shown = false;
+      // A stray move whose target is the embed (e.g. the boundary pixel of the
+      // map) must NOT re-arm the burger, or `cursor:none` would land back on the
+      // iframe and the pointer vanishes. Keep it suppressed instead.
+      if (isEmbed(e.target)) {
+        disable();
+        return;
       }
+      if (disabled) enableAt(tx, ty);
       if (!shown) {
         shown = true;
         if (reduce) {
@@ -155,29 +190,36 @@ export default function CustomCursor() {
       }
     };
     const onOver = (e: MouseEvent) => {
-      const t = e.target as HTMLElement | null;
-      // Over a cross-origin iframe (e.g. the Google map) the parent window stops
-      // receiving mousemove, so the burger would freeze there. Hide it and hand
-      // the native cursor back; onMove restores it once we're back on the page.
-      if (t && t.tagName === "IFRAME") {
-        overIframe = true;
-        el.style.opacity = "0";
-        document.documentElement.classList.remove("vc-cursor-on");
+      // Over a cross-origin iframe (the Google map) the parent window stops
+      // receiving mousemove, so the burger would freeze. Hand the native cursor
+      // back; onMove restores it once we're back on the page.
+      if (isEmbed(e.target)) {
+        disable();
         return;
       }
+      const t = e.target as HTMLElement | null;
       hot = !!t?.closest?.(
         "a,button,[role='button'],input,textarea,select,label,summary"
       );
     };
-    const onDown = () => bite();
-    const onLeave = () => {
-      shown = false;
-      el.style.opacity = "0";
+    const onDown = () => {
+      if (disabled) return;
+      bite();
     };
+    const onLeave = () => {
+      // Pointer left the document (into browser chrome or a popup) — let the OS
+      // cursor take over so it never goes missing around native UI.
+      disable();
+    };
+    // A native popup that steals focus (select/autofill dropdown, alert(),
+    // devtools, a new tab/window, or clicking into the map) blurs the window
+    // without a mouseout — restore the native cursor so it isn't left hidden.
+    const onBlur = () => disable();
 
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseover", onOver);
     window.addEventListener("mousedown", onDown);
+    window.addEventListener("blur", onBlur);
     document.addEventListener("mouseleave", onLeave);
 
     let raf = 0;
@@ -199,8 +241,9 @@ export default function CustomCursor() {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseover", onOver);
       window.removeEventListener("mousedown", onDown);
+      window.removeEventListener("blur", onBlur);
       document.removeEventListener("mouseleave", onLeave);
-      document.documentElement.classList.remove("vc-cursor-on");
+      root.classList.remove("vc-cursor-on");
     };
   }, []);
 

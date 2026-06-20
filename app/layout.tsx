@@ -3,6 +3,7 @@ import { Anton, Baloo_2, Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
 import CustomCursor from "@/components/CustomCursor";
+import PageTransition from "@/components/PageTransition";
 
 const anton = Anton({
   weight: "400",
@@ -44,7 +45,7 @@ export default function RootLayout({
       <body>
         <SmoothScroll />
         <CustomCursor />
-        {children}
+        <PageTransition>{children}</PageTransition>
       </body>
     </html>
   );

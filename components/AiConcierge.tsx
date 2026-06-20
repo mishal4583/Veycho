@@ -58,12 +58,22 @@ function Avatar({ size, radius, font }: { size: number; radius: number; font: nu
 
 export default function AiConcierge() {
   const [open, setOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [input, setInput] = useState("");
   const [convo, setConvo] = useState<Msg[]>([]);
   const [typing, setTyping] = useState(false);
   const [busy, setBusy] = useState(false);
   const msgsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Phones get a full-screen panel; the rotated card would clip off-screen.
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 760px)");
+    const apply = () => setIsMobile(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
 
   // Restore any persisted conversation (last 20 turns) after mount.
   useEffect(() => {
@@ -141,7 +151,8 @@ export default function AiConcierge() {
         position: "fixed",
         right: 26,
         bottom: 26,
-        zIndex: 9999,
+        // when the full-screen mobile panel is open, sit above the nav menu/hamburger
+        zIndex: open && isMobile ? 10002 : 9999,
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-end",
@@ -155,21 +166,35 @@ export default function AiConcierge() {
           id="vcb-panel"
           role="dialog"
           aria-label="Veycho Concierge"
-          style={{
-            display: "flex",
-            position: "relative",
-            width: 382,
-            maxWidth: "calc(100vw - 36px)",
-            height: 582,
-            maxHeight: "calc(100vh - 116px)",
-            background: "#f1e6d0",
-            borderRadius: 30,
-            overflow: "hidden",
-            boxShadow: "0 34px 80px rgba(0,0,0,.5)",
-            transform: "rotate(-3deg)",
-            transformOrigin: "bottom right",
-            animation: "vcb-pop-panel .46s cubic-bezier(.16,1,.3,1)",
-          }}
+          style={
+            isMobile
+              ? {
+                  // full-screen on phones — no rotation/clipping
+                  display: "flex",
+                  position: "fixed",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  background: "#f1e6d0",
+                  overflow: "hidden",
+                  animation: "vcb-pop-panel-m .4s cubic-bezier(.16,1,.3,1)",
+                }
+              : {
+                  display: "flex",
+                  position: "relative",
+                  width: 382,
+                  maxWidth: "calc(100vw - 36px)",
+                  height: 582,
+                  maxHeight: "calc(100vh - 116px)",
+                  background: "#f1e6d0",
+                  borderRadius: 30,
+                  overflow: "hidden",
+                  boxShadow: "0 34px 80px rgba(0,0,0,.5)",
+                  transform: "rotate(-3deg)",
+                  transformOrigin: "bottom right",
+                  animation: "vcb-pop-panel .46s cubic-bezier(.16,1,.3,1)",
+                }
+          }
         >
           {/* messages (scroll behind floating header & input) */}
           <div
@@ -180,7 +205,9 @@ export default function AiConcierge() {
               inset: 0,
               overflowY: "auto",
               overflowX: "hidden",
-              padding: "82px 18px 98px",
+              padding: isMobile
+                ? "calc(82px + env(safe-area-inset-top)) 18px calc(98px + env(safe-area-inset-bottom))"
+                : "82px 18px 98px",
               display: "flex",
               flexDirection: "column",
               gap: 13,
@@ -205,7 +232,9 @@ export default function AiConcierge() {
               display: "flex",
               alignItems: "center",
               gap: 12,
-              padding: "16px 16px 32px",
+              padding: isMobile
+                ? "calc(16px + env(safe-area-inset-top)) 16px 32px"
+                : "16px 16px 32px",
               background:
                 "linear-gradient(180deg,#f1e6d0 0%,#f1e6d0 42%,rgba(241,230,208,.8) 72%,rgba(241,230,208,0) 100%)",
               pointerEvents: "none",
@@ -292,7 +321,9 @@ export default function AiConcierge() {
               left: 0,
               right: 0,
               zIndex: 5,
-              padding: "36px 14px 15px",
+              padding: isMobile
+                ? "36px 14px calc(15px + env(safe-area-inset-bottom))"
+                : "36px 14px 15px",
               background:
                 "linear-gradient(0deg,#f1e6d0 0%,#f1e6d0 54%,rgba(241,230,208,.8) 80%,rgba(241,230,208,0) 100%)",
             }}

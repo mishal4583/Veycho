@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import TransitionLink from "@/components/TransitionLink";
 import PromoBar from "@/components/PromoBar";
 import Grain from "@/components/Grain";
 import Scallop from "@/components/Scallop";
@@ -63,7 +63,7 @@ export default async function MenuPage() {
             }}
           />
 
-          <Link
+          <TransitionLink
             href="/"
             style={{
               position: "absolute",
@@ -81,7 +81,7 @@ export default async function MenuPage() {
             }}
           >
             ← HOME
-          </Link>
+          </TransitionLink>
 
           <Reveal
             y={24}
@@ -245,7 +245,7 @@ export default async function MenuPage() {
             >
               {mp.footerNote}
             </span>
-            <Link
+            <TransitionLink
               href="/"
               style={{
                 fontFamily: "var(--font-baloo), sans-serif",
@@ -260,7 +260,7 @@ export default async function MenuPage() {
               }}
             >
               ← BACK HOME
-            </Link>
+            </TransitionLink>
           </div>
         </footer>
       </main>

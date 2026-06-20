@@ -233,14 +233,16 @@ function Lightbox({
   onNext: () => void;
 }) {
   const round: CSSProperties = {
-    width: 52,
-    height: 52,
+    width: "clamp(42px, 11vw, 52px)",
+    height: "clamp(42px, 11vw, 52px)",
     flex: "none",
     borderRadius: "50%",
     border: "2px solid #edb63f",
-    background: "rgba(7,24,33,.4)",
+    // Slightly more opaque than before: the prev/next arrows now overlay the
+    // photo's edges on small screens, so they need to stay legible over it.
+    background: "rgba(7,24,33,.55)",
     color: "#edb63f",
-    fontSize: 22,
+    fontSize: "clamp(20px, 5vw, 24px)",
     fontFamily: "var(--font-baloo), sans-serif",
     cursor: "pointer",
     display: "grid",
@@ -272,30 +274,62 @@ function Lightbox({
         }}
         aria-label="Close"
         style={{
-          position: "absolute",
-          top: 22,
-          right: 24,
           ...round,
+          position: "absolute",
+          top: "clamp(14px, 3vw, 22px)",
+          right: "clamp(14px, 3vw, 24px)",
+          zIndex: 6,
         }}
       >
         ✕
       </button>
 
+      {/* Arrows are pinned to the viewport edges (not in the image's flex row),
+          so they stay visible no matter how narrow the screen — on phones they
+          gently overlay the photo's edges instead of pushing it off-screen. */}
+      {total > 1 && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onPrev();
+          }}
+          aria-label="Previous"
+          style={{
+            ...round,
+            position: "absolute",
+            left: "clamp(8px, 2vw, 28px)",
+            top: "50%",
+            transform: "translateY(-50%)",
+            zIndex: 5,
+          }}
+        >
+          ‹
+        </button>
+      )}
+      {total > 1 && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onNext();
+          }}
+          aria-label="Next"
+          style={{
+            ...round,
+            position: "absolute",
+            right: "clamp(8px, 2vw, 28px)",
+            top: "50%",
+            transform: "translateY(-50%)",
+            zIndex: 5,
+          }}
+        >
+          ›
+        </button>
+      )}
+
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "clamp(10px,2.5vw,26px)",
-          maxWidth: "100%",
-        }}
+        style={{ maxWidth: "100%" }}
       >
-        {total > 1 && (
-          <button onClick={onPrev} aria-label="Previous" style={round}>
-            ‹
-          </button>
-        )}
-
         <figure style={{ margin: 0, textAlign: "center" }}>
           <div
             style={{
@@ -351,12 +385,6 @@ function Lightbox({
             </span>
           </figcaption>
         </figure>
-
-        {total > 1 && (
-          <button onClick={onNext} aria-label="Next" style={round}>
-            ›
-          </button>
-        )}
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import Scallop from "./Scallop";
-import { scrollToId } from "@/lib/scroll";
+import TransitionLink from "./TransitionLink";
+import { usePageTransition } from "./PageTransition";
 import { DEFAULT_CONTENT, type FooterContent } from "@/lib/content-defaults";
 
 const colLink = {
@@ -24,6 +24,7 @@ export default function SiteFooter({
 }: {
   content?: FooterContent;
 }) {
+  const { navigate } = usePageTransition();
   return (
     <footer
       style={{
@@ -94,16 +95,16 @@ export default function SiteFooter({
                   href={l.target}
                   onClick={(e) => {
                     e.preventDefault();
-                    scrollToId(l.target.slice(1));
+                    navigate({ type: "scroll", id: l.target.slice(1) });
                   }}
                   style={colLink}
                 >
                   {l.label}
                 </a>
               ) : (
-                <Link key={l.label} href={l.target} style={colLink}>
+                <TransitionLink key={l.label} href={l.target} style={colLink}>
                   {l.label}
-                </Link>
+                </TransitionLink>
               )
             )}
           </div>

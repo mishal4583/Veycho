@@ -4,19 +4,19 @@ import { useEffect, useState } from "react";
 import Reveal from "./Reveal";
 import { DEFAULT_CONTENT, type ReviewsContent } from "@/lib/content-defaults";
 
-// Per-card look: colours from the Chef's-Selection menu cards, an asymmetric
-// "blob" radius, a tilt and a vertical stagger. Reviews are mapped onto these
-// presets by index, so the row reads as a scatter of organic shapes. Keeping the
-// preset tied to the (base) index keeps the repeated marquee halves identical and
-// the loop seamless.
-type Style = { bg: string; w: number; h: number; radius: string; vy: number; rot: number };
+// Per-card look: colours from the Chef's-Selection menu cards, plus a size, tilt
+// and vertical stagger that vary per index so the row reads as a hand-pinned
+// scatter. The "wavy" scalloped edge itself is shared and lives in `.vc-review-card`
+// (globals.css). Keeping the preset tied to the (base) index keeps the repeated
+// marquee halves identical and the loop seamless.
+type Style = { bg: string; w: number; h: number; vy: number; rot: number };
 const STYLE_PRESETS: Style[] = [
-  { bg: "#f3e7cf", w: 424, h: 424, radius: "42% 58% 70% 30% / 45% 42% 58% 55%", vy: -28, rot: -5 },
-  { bg: "#edb63f", w: 384, h: 456, radius: "63% 37% 41% 59% / 57% 38% 62% 43%", vy: 26, rot: 5 },
-  { bg: "#c9d6c3", w: 452, h: 392, radius: "38% 62% 63% 37% / 68% 33% 67% 32%", vy: -16, rot: -3 },
-  { bg: "#f6dd9b", w: 408, h: 444, radius: "50% 50% 36% 64% / 56% 38% 62% 44%", vy: 30, rot: 4 },
-  { bg: "#e9c7a6", w: 444, h: 408, radius: "67% 33% 58% 42% / 38% 63% 37% 62%", vy: -22, rot: -5 },
-  { bg: "#ecc3ad", w: 392, h: 460, radius: "33% 67% 47% 53% / 63% 47% 53% 37%", vy: 14, rot: 5 },
+  { bg: "#f3e7cf", w: 360, h: 360, vy: -28, rot: -5 },
+  { bg: "#edb63f", w: 328, h: 388, vy: 26, rot: 5 },
+  { bg: "#c9d6c3", w: 384, h: 332, vy: -16, rot: -3 },
+  { bg: "#f6dd9b", w: 348, h: 376, vy: 30, rot: 4 },
+  { bg: "#e9c7a6", w: 376, h: 348, vy: -22, rot: -5 },
+  { bg: "#ecc3ad", w: 332, h: 392, vy: 14, rot: 5 },
 ];
 
 type Card = { quote: string; author: string };
@@ -36,6 +36,51 @@ const INK = "#2b1418";
 
 function truncate(s: string, n = 170) {
   return s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s;
+}
+
+/**
+ * A scalloped, cosine-wave silhouette used to mask each testimonial card so all
+ * four edges ripple — the same smooth bump (no sharp cusps) as the site's Scallop
+ * dividers. Built per-card from its w/h so the bumps stay round, and kept to a
+ * single mask layer (a filled SVG path) so it renders reliably without depending
+ * on `mask-composite`. Bumps dip inward, so the card never grows past w×h.
+ */
+function wavyMask(w: number, h: number): string {
+  const a = 10; // how far each perforation dips inward (px)
+  const target = 32; // desired perforation period; actual is rounded to tile each edge
+  const nx = Math.max(2, Math.round(w / target));
+  const ny = Math.max(2, Math.round(h / target));
+  const bx = w / nx;
+  const by = h / ny;
+  const qx = bx / 4; // control-point offset → smooth (cosine-like) curve
+  const qy = by / 4;
+  const f = (n: number) => n.toFixed(1);
+
+  let d = "M0,0";
+  // top edge (→), bumps dip down
+  for (let i = 0; i < nx; i++) {
+    const x = i * bx;
+    d += ` C${f(x + qx)},0 ${f(x + qx)},${a} ${f(x + bx / 2)},${a} C${f(x + bx - qx)},${a} ${f(x + bx - qx)},0 ${f(x + bx)},0`;
+  }
+  // right edge (↓), bumps dip left
+  for (let i = 0; i < ny; i++) {
+    const y = i * by;
+    d += ` C${w},${f(y + qy)} ${w - a},${f(y + qy)} ${w - a},${f(y + by / 2)} C${w - a},${f(y + by - qy)} ${w},${f(y + by - qy)} ${w},${f(y + by)}`;
+  }
+  // bottom edge (←), bumps dip up
+  for (let i = 0; i < nx; i++) {
+    const x = w - i * bx;
+    d += ` C${f(x - qx)},${h} ${f(x - qx)},${h - a} ${f(x - bx / 2)},${h - a} C${f(x - bx + qx)},${h - a} ${f(x - bx + qx)},${h} ${f(x - bx)},${h}`;
+  }
+  // left edge (↑), bumps dip right
+  for (let i = 0; i < ny; i++) {
+    const y = h - i * by;
+    d += ` C0,${f(y - qy)} ${a},${f(y - qy)} ${a},${f(y - by / 2)} C${a},${f(y - by + qy)} 0,${f(y - by + qy)} 0,${f(y - by)}`;
+  }
+  d += " Z";
+
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${w} ${h}' preserveAspectRatio='none'><path d='${d}' fill='#fff'/></svg>`;
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
 }
 
 export default function Reviews({
@@ -127,11 +172,14 @@ export default function Reviews({
           className="vc-marquee-track"
           style={{ gap: 30, padding: "88px 14px", alignItems: "center" }}
         >
-          {LOOP.map((r, i) => (
+          {LOOP.map((r, i) => {
+            const mask = wavyMask(r.w, r.h);
+            return (
             // Wrapper carries the stagger + tilt so the card's own hover-lift
             // transform stays independent.
             <div
               key={i}
+              className="vc-review-wrap"
               style={{ flex: "none", transform: `translateY(${r.vy}px) rotate(${r.rot}deg)` }}
             >
               <blockquote
@@ -140,15 +188,21 @@ export default function Reviews({
                   width: r.w,
                   minHeight: r.h,
                   background: r.bg,
-                  borderRadius: r.radius,
-                  padding: "56px 48px",
+                  // wavy, all-edges-rippling silhouette (see wavyMask)
+                  WebkitMaskImage: mask,
+                  maskImage: mask,
+                  WebkitMaskSize: "100% 100%",
+                  maskSize: "100% 100%",
+                  WebkitMaskRepeat: "no-repeat",
+                  maskRepeat: "no-repeat",
+                  padding: "44px 40px",
                   margin: 0,
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
                   textAlign: "center",
-                  gap: 30,
+                  gap: 24,
                 }}
               >
                 <p
@@ -157,7 +211,7 @@ export default function Reviews({
                     fontFamily: "var(--font-baloo), sans-serif",
                     fontWeight: 800,
                     textTransform: "uppercase",
-                    fontSize: 23,
+                    fontSize: 20,
                     lineHeight: 1.4,
                     margin: 0,
                   }}
@@ -177,7 +231,8 @@ export default function Reviews({
                 </footer>
               </blockquote>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

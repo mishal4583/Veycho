@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import TransitionLink from "@/components/TransitionLink";
 import PromoBar from "@/components/PromoBar";
 import Grain from "@/components/Grain";
 import Scallop from "@/components/Scallop";
@@ -83,7 +83,7 @@ export default async function GalleryPage() {
               gap: 10,
             }}
           >
-            <Link
+            <TransitionLink
               href="/"
               style={{
                 fontFamily: "var(--font-baloo), sans-serif",
@@ -98,8 +98,8 @@ export default async function GalleryPage() {
               }}
             >
               ← HOME
-            </Link>
-            <Link
+            </TransitionLink>
+            <TransitionLink
               href="/menu"
               style={{
                 fontFamily: "var(--font-baloo), sans-serif",
@@ -115,7 +115,7 @@ export default async function GalleryPage() {
               }}
             >
               SEE MENU
-            </Link>
+            </TransitionLink>
           </div>
 
           <Reveal
@@ -287,7 +287,7 @@ export default async function GalleryPage() {
             <span style={{ color: "#8aa1ab", fontSize: 14, fontWeight: 500 }}>
               Veycho Resto-Cafe · Kalpetta, Wayanad · 11 AM — 10 PM
             </span>
-            <Link
+            <TransitionLink
               href="/"
               style={{
                 fontFamily: "var(--font-baloo), sans-serif",
@@ -302,7 +302,7 @@ export default async function GalleryPage() {
               }}
             >
               ← BACK HOME
-            </Link>
+            </TransitionLink>
           </div>
         </footer>
       </main>
