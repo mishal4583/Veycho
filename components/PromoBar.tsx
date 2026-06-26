@@ -1,4 +1,4 @@
-import { DEFAULT_CONTENT } from "@/lib/content-defaults";
+﻿import { DEFAULT_CONTENT } from "@/lib/content-defaults";
 
 export default function PromoBar({
   message = DEFAULT_CONTENT.promo.message,
@@ -22,7 +22,7 @@ export default function PromoBar({
         style={{
           display: "inline-flex",
           whiteSpace: "nowrap",
-          animation: "vc-marquee 24s linear infinite",
+          animation: "vc-marquee 16s linear infinite",
           fontFamily: "var(--font-baloo), sans-serif",
           fontWeight: 700,
           fontSize: 12,

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   useCallback,
@@ -156,12 +156,14 @@ export default function Journey({
         const fold = card.querySelector<HTMLElement>(".sp-fold")!;
         fold.style.transform = "none";
         fold.style.boxShadow = "none";
-        const off = i - (n - 1) / 2; // -1.5 .. 1.5
+        const off = i - (n - 1) / 2;
+        const rotMag = Math.min(14, 70 / n);   // 14° for ≤5 cards, 10° for 7
+        const yMag   = Math.min(33, 165 / n);  // 33px for ≤5 cards, 24px for 7
         const tx = p * off * 132;
-        const stackTy = 34 + off * 4; // subtle stagger while stacked
-        const fanTy = Math.abs(off) * 33;
+        const stackTy = 34 + off * 4;
+        const fanTy = Math.abs(off) * yMag;
         const ty = stackTy + (fanTy - stackTy) * p;
-        const rot = p * off * 14;
+        const rot = p * off * rotMag;
         const scale = 0.9 + 0.1 * p;
         card.style.transition = smooth ? SMOOTH : "none";
         card.style.transitionDelay = "0ms";
@@ -429,7 +431,13 @@ export default function Journey({
           perspective: 1600,
         }}
       >
-        <div className="sp-deck-wrap">
+        <div
+          className="sp-deck-wrap"
+          style={chapters.length > 5 ? {
+            transform: `scale(${(5 / chapters.length).toFixed(3)})`,
+            transformOrigin: "50% 50%",
+          } : undefined}
+        >
           <div
             id="sp-deck"
             style={{

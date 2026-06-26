@@ -5,8 +5,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useRoles } from "@/hooks/useRole";
-import { LayoutDashboard, FileText, UtensilsCrossed, Tag, Sparkles, BookOpen, Image as ImageIcon, BadgePercent, Star, Brain, BarChart3, Settings, Users, LogOut, Loader2, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, FileText, UtensilsCrossed, Tag, Sparkles, BookOpen, Image as ImageIcon, BadgePercent, Star, Brain, BarChart3, Settings, Users, LogOut, Loader2, ShieldAlert, MapPin } from "lucide-react";
 import { toast } from "sonner";
+import AdminCursorOff from "@/components/AdminCursorOff";
 
 type NavRole = "super" | "manager" | "editor";
 
@@ -21,6 +22,9 @@ const NAV = [
   { to: "/admin/offers", label: "Offers", icon: BadgePercent, role: "manager" as const },
   { to: "/admin/reviews", label: "Reviews", icon: Star, role: "manager" as const },
   { to: "/admin/faqs", label: "AI Knowledge", icon: Brain, role: "editor" as const },
+  { to: "/admin/explore", label: "Explore Wayanad", icon: MapPin, role: "manager" as const },
+  { to: "/admin/explore/categories", label: "Explore Categories", icon: Tag, role: "manager" as const },
+  { to: "/admin/explore/reviews", label: "Destination Reviews", icon: Star, role: "manager" as const },
   { to: "/admin/analytics", label: "Analytics", icon: BarChart3, role: "super" as const },
   { to: "/admin/settings", label: "Settings", icon: Settings, role: "super" as const },
   { to: "/admin/users", label: "Users", icon: Users, role: "super" as const },
@@ -82,6 +86,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen bg-background text-foreground flex">
+      <AdminCursorOff />
       <aside className="w-64 shrink-0 border-r border-border/60 bg-bg-secondary hidden lg:flex flex-col">
         <div className="px-6 py-6 border-b border-border/60">
           <a href="/" className="font-serif text-xl text-foreground">Veycho <span className="italic text-gold">Admin</span></a>

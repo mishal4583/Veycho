@@ -15,14 +15,33 @@ SIGNATURE DISHES (always recommend these to first-time visitors):
 - Paalkappa Beef — tender tapioca in coconut milk with peppery slow-cooked beef
 Other house favourites: Thengachore, White Bull Burger, Thai Grill Steak.
 
+WAYANAD TOURISM KNOWLEDGE:
+You are also a Wayanad tourism guide. Answer questions about nearby attractions, viewpoints, waterfalls, wildlife, heritage sites, trekking, and travel tips. Seamlessly combine restaurant + tourism advice. Example: "After lunch, you could visit Edakkal Caves (27 km, 45 mins drive)."
+
+KEY NEARBY DESTINATIONS (from Veycho/Kalpetta):
+- Pookode Lake — 8 km, 15 mins. Serene freshwater lake, boating. Easy, all year.
+- Lakkidi View Point — 12 km, 20 mins. Misty gateway viewpoint, free entry. Easy.
+- Soochipara Waterfalls — 18 km, 30 mins. Three-tiered waterfall, swimming pool. ₹40/person.
+- Banasura Sagar Dam — 21 km, 35 mins. India's largest earth dam, boat rides. Easy.
+- Meenmutty Falls — 25 km, 40 mins. Kerala's second largest waterfall. Moderate.
+- Edakkal Caves — 27 km, 45 mins. Ancient petroglyphs 6000 BCE. Heritage. ₹40/person.
+- Chembra Peak — 30 km, 50 mins. Highest peak 2100m, heart-shaped lake. Permit required.
+- Wayanad Wildlife Sanctuary — 35 km, 60 mins. Elephant safari, tigers, leopards.
+
+SAMPLE ONE-DAY ITINERARY:
+Morning: Edakkal Caves or Chembra Peak trek
+Midday: Lunch at Veycho (try Pothumkaal + Thengachore)
+Afternoon: Banasura Sagar Dam or Pookode Lake
+Evening: Lakkidi View Point for sunset
+
 STRICT RULES:
-- Answer ONLY questions about Veycho Restaurant & Cafe Wayanad: menu, dishes, ingredients, prices, opening hours, location, story, offers, gallery, allergens, dietary options.
+- Answer questions about Veycho Restaurant AND Wayanad tourism/travel.
+- For non-Wayanad/non-Veycho questions (politics, code, other states, etc.), respond: "I am Veycho's Digital Concierge and can assist with restaurant and Wayanad tourism questions."
 - Veycho does NOT take online table reservations or bookings. Walk-ins are always welcome. If a guest asks to reserve/book a table, warmly explain there is no online booking — they can simply walk in, or call +91 9292619419 with any questions.
-- If the user asks anything unrelated (politics, weather, general knowledge, other businesses, code, etc.), respond exactly:
-  "I am Veycho's Digital Concierge and can only assist with restaurant-related information."
 - Never invent menu items, prices, hours, or contact details — use only the CONTEXT below.
-- If a first-time visitor asks for recommendations, lead with Pothumkaal, Vaariyellu and Paalkappa Beef.
-- If context lacks the answer, politely suggest contacting +91 9292619419 or veychorestocafe@gmail.com.`;
+- If a first-time visitor asks for recommendations, lead with Pothumkaal, Vaariyellu and Paalkappa Beef, then suggest a nearby destination.
+- If context lacks the answer, politely suggest contacting +91 9292619419 or veychorestocafe@gmail.com.
+- Always weave Veycho dining into tourism suggestions naturally.`;
 
 // ---- Limits (abuse / cost protection) ----
 const MAX_MESSAGE_CHARS = 2000;
@@ -58,13 +77,14 @@ function serverSupabase() {
 async function buildContext() {
   const supabase = serverSupabase();
 
-  const [menu, faqs, settings, story, offers, specials] = await Promise.all([
+  const [menu, faqs, settings, story, offers, specials, destinations] = await Promise.all([
     supabase.from("menu_items").select("name,description,price,is_veg,is_chef_special,is_popular,spice_level,ingredients,tag").eq("availability", true).limit(100),
     supabase.from("faqs").select("question,answer,category").limit(50),
     supabase.from("settings").select("*").limit(1).maybeSingle(),
     supabase.from("story").select("title,subtitle,content").limit(1).maybeSingle(),
     supabase.from("offers").select("title,description,expiry_date").eq("active", true).limit(20),
     supabase.from("menu_items").select("name,description,price,tag").eq("is_chef_special", true).limit(20),
+    supabase.from("destinations").select("title,short_description,distance_km,travel_time,entry_fee,best_season,difficulty_level,family_friendly").eq("status", "published").limit(20),
   ]);
 
   const s = settings.data as any;
@@ -89,6 +109,9 @@ ${(offers.data ?? []).map((o: any) => `• ${o.title} — ${o.description ?? ""}
 
 === FAQs ===
 ${(faqs.data ?? []).map((f: any) => `Q: ${f.question}\nA: ${f.answer}`).join("\n\n")}
+
+=== NEARBY WAYANAD DESTINATIONS (from DB) ===
+${(destinations.data ?? []).map((d: any) => `• ${d.title} — ${d.distance_km ?? "?"}km, ${d.travel_time ?? "?"} — ${d.short_description ?? ""} | Entry: ${d.entry_fee ?? "varies"} | Best: ${d.best_season ?? "all year"} | Difficulty: ${d.difficulty_level ?? "varies"} | Family: ${d.family_friendly ? "yes" : "no"}`).join("\n")}
 `.trim();
 }
 

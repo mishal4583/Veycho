@@ -38,6 +38,169 @@ export type Database = {
         }
         Relationships: []
       }
+      destination_categories: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          icon: string
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          icon?: string
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          icon?: string
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      destination_images: {
+        Row: {
+          created_at: string
+          destination_id: string
+          id: string
+          image_url: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          destination_id: string
+          id?: string
+          image_url: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          destination_id?: string
+          id?: string
+          image_url?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "destination_images_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      destinations: {
+        Row: {
+          amenities: string[]
+          best_season: string | null
+          best_time: string | null
+          category_id: string | null
+          created_at: string
+          description: string | null
+          difficulty_level: string | null
+          distance_km: number | null
+          entry_fee: string | null
+          family_friendly: boolean
+          featured: boolean
+          featured_image: string | null
+          google_maps_url: string | null
+          google_rating: number | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          opening_hours: string | null
+          parking_available: boolean
+          seo_description: string | null
+          seo_title: string | null
+          short_description: string
+          slug: string
+          status: string
+          title: string
+          travel_time: string | null
+          travel_tips: Json
+          updated_at: string
+        }
+        Insert: {
+          amenities?: string[]
+          best_season?: string | null
+          best_time?: string | null
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          difficulty_level?: string | null
+          distance_km?: number | null
+          entry_fee?: string | null
+          family_friendly?: boolean
+          featured?: boolean
+          featured_image?: string | null
+          google_maps_url?: string | null
+          google_rating?: number | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          opening_hours?: string | null
+          parking_available?: boolean
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string
+          slug: string
+          status?: string
+          title: string
+          travel_time?: string | null
+          travel_tips?: Json
+          updated_at?: string
+        }
+        Update: {
+          amenities?: string[]
+          best_season?: string | null
+          best_time?: string | null
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          difficulty_level?: string | null
+          distance_km?: number | null
+          entry_fee?: string | null
+          family_friendly?: boolean
+          featured?: boolean
+          featured_image?: string | null
+          google_maps_url?: string | null
+          google_rating?: number | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          opening_hours?: string | null
+          parking_available?: boolean
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string
+          slug?: string
+          status?: string
+          title?: string
+          travel_time?: string | null
+          travel_tips?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "destinations_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "destination_categories"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -313,6 +476,7 @@ export type Database = {
       reviews: {
         Row: {
           approved: boolean
+          archived: boolean
           created_at: string
           featured: boolean
           id: string
@@ -323,6 +487,7 @@ export type Database = {
         }
         Insert: {
           approved?: boolean
+          archived?: boolean
           created_at?: string
           featured?: boolean
           id?: string
@@ -333,6 +498,7 @@ export type Database = {
         }
         Update: {
           approved?: boolean
+          archived?: boolean
           created_at?: string
           featured?: boolean
           id?: string

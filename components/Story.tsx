@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Fragment, useEffect, useRef, useState } from "react";
 import { scrollToId } from "@/lib/scroll";

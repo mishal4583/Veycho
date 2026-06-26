@@ -42,12 +42,16 @@ type TransitionApi = { navigate: (target: Target, opts?: NavOptions) => void };
 
 const TransitionContext = createContext<TransitionApi | null>(null);
 
+const FALLBACK_API: TransitionApi = {
+  navigate: (target) => {
+    if (typeof window === "undefined") return;
+    if (target.type === "route") window.location.assign(target.href);
+    else document.getElementById(target.id)?.scrollIntoView({ behavior: "smooth" });
+  },
+};
+
 export function usePageTransition(): TransitionApi {
-  const ctx = useContext(TransitionContext);
-  if (!ctx) {
-    throw new Error("usePageTransition must be used within <PageTransition>");
-  }
-  return ctx;
+  return useContext(TransitionContext) ?? FALLBACK_API;
 }
 
 // idle  → parked below the fold

@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 //  Site content defaults
 //  Every piece of editable copy + media on the public site, as typed default
 //  objects. This is the SINGLE SOURCE for two things:
@@ -12,6 +12,22 @@ export type NavContent = {
   menuLabel: string;
   galleryLabel: string;
   visitLabel: string;
+  exploreLabel: string;
+  phone: string;
+  hours: string;
+  instagram: string;
+};
+
+export type ExploreSectionContent = {
+  eyebrow: string;
+  heading: string;
+  description: string;
+};
+
+export type ExplorePageContent = {
+  heroImageUrl: string;
+  heroTitle: string;
+  heroDescription: string;
 };
 
 export type PromoContent = { message: string };
@@ -105,10 +121,23 @@ export type SiteContent = {
   footer: FooterContent;
   menuPage: MenuPageContent;
   galleryPage: GalleryPageContent;
+  exploreSection: ExploreSectionContent;
+  explorePage: ExplorePageContent;
 };
 
 // ---- menu types (shared by MenuExplorer + content helper + seed) ----
-export type MenuItem = { name: string; price: string; tag?: string; img?: string };
+export type MenuItem = {
+  name: string;
+  price: string;
+  tag?: string;
+  img?: string;
+  description?: string;
+  is_veg?: boolean;
+  spice_level?: number;
+  ingredients?: string;
+  is_popular?: boolean;
+  is_chef_special?: boolean;
+};
 export type MenuCategory = {
   key: string; // category slug
   title: string;
@@ -129,12 +158,16 @@ export type MenuCategory = {
 export const DEFAULT_CONTENT: SiteContent = {
   promo: {
     message:
-      "✦ Authentic Wayanadan flavors ✦ Resto-Cafe since 2020 ✦ Kalpetta, Kerala ✦ Walk-ins welcome 11am–10pm ",
+      "✦ Authentic Wayanadan flavours ✦ Resto-Cafe since 2020 ✦ Kalpetta, Kerala ✦ Walk-ins welcome 11am–10pm ",
   },
   nav: {
     menuLabel: "SEE MENU",
     galleryLabel: "GALLERY",
     visitLabel: "VISIT",
+    exploreLabel: "Explore",
+    phone: "+91 9292619419",
+    hours: "Open daily · 11 AM – 10 PM",
+    instagram: "",
   },
   hero: {
     label: "WAYANAD · KERALA · SINCE 2020",
@@ -146,7 +179,7 @@ export const DEFAULT_CONTENT: SiteContent = {
   },
   story: {
     paragraph:
-      "We’re cooking the Wayanadan flavors you crave the way they were always meant to be — local ingredients, hand-pounded spices, and recipes carried forward by generations.",
+      "We’re cooking the Wayanadan flavours you crave the way they were always meant to be — local ingredients, hand-pounded spices, and recipes carried forward by generations.",
     ctaLabel: "READ OUR STORY",
   },
   journey: {
@@ -159,7 +192,7 @@ export const DEFAULT_CONTENT: SiteContent = {
       {
         year: "2020",
         title: "Founded",
-        body: "In 2020, Jamsheed K.V opened the doors of Veycho in Kalpetta, driven by a deep love for the authentic flavors of Wayanad. What began as a single warm room and a handful of family recipes set out to share the comfort of Wayanadan home cooking with everyone who walked in.",
+        body: "In 2020, Jamsheed K.V opened the doors of Veycho in Kalpetta, driven by a deep love for the authentic flavours of Wayanad. What began as a single warm room and a handful of family recipes set out to share the comfort of Wayanadan home cooking with everyone who walked in.",
       },
       {
         year: "2022",
@@ -194,7 +227,7 @@ export const DEFAULT_CONTENT: SiteContent = {
     heading: "An evening,\ncomposed\nfor you.",
     ctaParagraph:
       "Walk-ins are always welcome. Call or message us for directions, opening hours, or any questions.",
-    mapBadge: "📍 Kalpetta, Wayanad",
+    mapBadge: "📍 Kalpetta, Wayanad",
     address:
       "Veycho Restaurant & Cafe, Near MCF School Road, Gudalai, Mandayapuram, Kalpetta, Kerala 673121",
     phone: "+91 9292619419",
@@ -206,12 +239,13 @@ export const DEFAULT_CONTENT: SiteContent = {
   footer: {
     brandName: "Veycho Restaurant & Cafe",
     description:
-      "“Authentic Flavors, Unforgettable Memories.” Resto-Cafe · Est. 2020 · Kalpetta, Kerala.",
+      "“Authentic Flavours, Unforgettable Memories.” Resto-Cafe · Est. 2020 · Kalpetta, Kerala.",
     explore: [
       { label: "Journey", target: "#journey" },
       { label: "Signatures", target: "#vc-menupin" },
       { label: "Menu", target: "/menu" },
       { label: "Gallery", target: "/gallery" },
+      { label: "Explore Wayanad", target: "/explore" },
     ],
     instagram: "",
     facebook: "",
@@ -234,6 +268,16 @@ export const DEFAULT_CONTENT: SiteContent = {
     heroTagline: "Every plate, pour & good time — in pictures.",
     sectionLabel: "MOMENTS · MEMORIES · MEALS",
     sectionHeading: "Life at Veycho",
+  },
+  exploreSection: {
+    eyebrow: "Beyond the Table",
+    heading: "Explore Wayanad",
+    description: "Make your visit unforgettable. Discover the beauty waiting just beyond your dining table.",
+  },
+  explorePage: {
+    heroImageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80",
+    heroTitle: "Explore\nWayanad",
+    heroDescription: "From misty mountains and thundering waterfalls to wildlife sanctuaries and ancient heritage sites — discover the best experiences around Veycho.",
   },
 };
 
@@ -290,7 +334,7 @@ export const CATEGORY_THEME: Record<string, CategoryTheme> = {
   starters: { chip: "Starters", badge: "Starter", emoji: "🍟", bg: "#f6dd9b", card: "#f6dd9b", disc: "#ecca6f" },
   mains: { chip: "Mains", badge: "Main", emoji: "🍽️", bg: "#e9c7a6", card: "#e9c7a6", disc: "#dcb892" },
   burger: { chip: "Burger", badge: "Burger", emoji: "🍔", bg: "#ecc3ad", card: "#ecc3ad", disc: "#e0ad94" },
-  pasta: { chip: "Pasta", badge: "Pasta", emoji: "🍝", bg: "#f4a3c1", card: "#f3e7cf", disc: "#e6d6b5" },
+  pasta: { chip: "Pasta", badge: "Pasta", emoji: "🍝", bg: "#f4a3c1", card: "#f3e7cf", disc: "#e6d6b5" },
   sandwich: { chip: "Sandwich", badge: "Sandwich", emoji: "🥪", bg: "#8ecae6", card: "#b9d0c9", disc: "#a6c2b9" },
   drinks: { chip: "Drinks", badge: "Drink", emoji: "🍹", bg: "#edb63f", card: "#e7cfa0", disc: "#d8bd86" },
 };

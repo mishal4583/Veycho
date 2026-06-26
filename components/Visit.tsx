@@ -1,4 +1,4 @@
-import Reveal from "./Reveal";
+﻿import Reveal from "./Reveal";
 import Scallop from "./Scallop";
 import { DEFAULT_CONTENT, type VisitContent } from "@/lib/content-defaults";
 

@@ -1,9 +1,21 @@
-"use client";
+﻿"use client";
 
 import Scallop from "./Scallop";
 import TransitionLink from "./TransitionLink";
 import { usePageTransition } from "./PageTransition";
 import { DEFAULT_CONTENT, type FooterContent } from "@/lib/content-defaults";
+
+function IgIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
+
+const IG_GRADIENT = "linear-gradient(135deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)";
 
 const colLink = {
   color: "#8aa1ab",
@@ -21,8 +33,12 @@ const colHead = {
 
 export default function SiteFooter({
   content = DEFAULT_CONTENT.footer,
+  topScallop = true,
+  topScallopColor = "#edb63f",
 }: {
   content?: FooterContent;
+  topScallop?: boolean;
+  topScallopColor?: string;
 }) {
   const { navigate } = usePageTransition();
   return (
@@ -31,10 +47,10 @@ export default function SiteFooter({
         position: "relative",
         zIndex: 2,
         background: "#071821",
-        padding: "90px 48px 40px",
+        padding: "90px clamp(20px,5vw,48px) 40px",
       }}
     >
-      <Scallop edge="top" color="#edb63f" />
+      {topScallop && <Scallop edge="top" color={topScallopColor} />}
 
       <div style={{ maxWidth: 1280, margin: "0 auto" }}>
         <div
@@ -111,14 +127,32 @@ export default function SiteFooter({
 
           <div style={{ display: "flex", gap: 16, flexDirection: "column" }}>
             <span style={colHead}>FOLLOW</span>
-            <a href={content.instagram || "#"} style={colLink}>
-              Instagram
-            </a>
-            <a href={content.facebook || "#"} style={colLink}>
-              Facebook
-            </a>
+            {content.instagram && (
+              <a
+                href={content.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 9,
+                  background: IG_GRADIENT,
+                  borderRadius: 100, padding: "9px 18px",
+                  color: "#fff", textDecoration: "none",
+                  fontFamily: "var(--font-baloo), sans-serif",
+                  fontWeight: 700, fontSize: 13, letterSpacing: ".04em",
+                  alignSelf: "flex-start",
+                }}
+              >
+                <IgIcon size={15} />
+                Follow on Instagram
+              </a>
+            )}
+            {content.facebook && (
+              <a href={content.facebook} target="_blank" rel="noopener noreferrer" style={colLink}>
+                Facebook
+              </a>
+            )}
             <a href={`mailto:${content.email}`} style={colLink}>
-              Email
+              Email us
             </a>
           </div>
         </div>

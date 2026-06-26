@@ -21,6 +21,8 @@ import {
   type MenuItem,
   type JourneyChapter,
   type FooterLink,
+  type ExploreSectionContent,
+  type ExplorePageContent,
 } from "@/lib/content-defaults";
 
 type Row = Record<string, unknown>;
@@ -73,6 +75,8 @@ export async function getSiteContent(): Promise<SiteContent> {
   const nav = get("nav");
   const menuPage = get("menu_page");
   const galleryPage = get("gallery_page");
+  const exploreSectionDB = get("explore_section");
+  const explorePageDB = get("explore_page");
 
   const set = settings ?? {};
   const socials = (set.social_links_json as Row) ?? {};
@@ -92,6 +96,10 @@ export async function getSiteContent(): Promise<SiteContent> {
       menuLabel: s(nav.menuLabel, d.nav.menuLabel),
       galleryLabel: s(nav.galleryLabel, d.nav.galleryLabel),
       visitLabel: s(nav.visitLabel, d.nav.visitLabel),
+      exploreLabel: s(nav.exploreLabel, d.nav.exploreLabel),
+      phone: s(set.phone, d.nav.phone),
+      hours: s(set.opening_hours, d.nav.hours),
+      instagram: s(socials.instagram, d.nav.instagram),
     },
     hero: {
       label: s(hero.label, d.hero.label),
@@ -159,6 +167,16 @@ export async function getSiteContent(): Promise<SiteContent> {
       sectionLabel: s(galleryPage.sectionLabel, d.galleryPage.sectionLabel),
       sectionHeading: s(galleryPage.sectionHeading, d.galleryPage.sectionHeading),
     },
+    exploreSection: {
+      eyebrow: s(exploreSectionDB.eyebrow, d.exploreSection.eyebrow),
+      heading: s(exploreSectionDB.heading, d.exploreSection.heading),
+      description: s(exploreSectionDB.description, d.exploreSection.description),
+    },
+    explorePage: {
+      heroImageUrl: s(explorePageDB.heroImageUrl, d.explorePage.heroImageUrl),
+      heroTitle: s(explorePageDB.heroTitle, d.explorePage.heroTitle),
+      heroDescription: s(explorePageDB.heroDescription, d.explorePage.heroDescription),
+    },
   };
 }
 
@@ -191,6 +209,12 @@ export async function getMenu(): Promise<MenuCategory[]> {
           price: priceText(it.price),
           tag,
           img: typeof it.image_url === "string" && it.image_url ? it.image_url : undefined,
+          description: typeof it.description === "string" && it.description ? it.description : undefined,
+          is_veg: Boolean(it.is_veg),
+          spice_level: typeof it.spice_level === "number" ? it.spice_level : undefined,
+          ingredients: typeof it.ingredients === "string" && it.ingredients ? it.ingredients : undefined,
+          is_popular: Boolean(it.is_popular),
+          is_chef_special: Boolean(it.is_chef_special),
         };
       });
       return {

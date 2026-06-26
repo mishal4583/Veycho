@@ -11,6 +11,7 @@ export async function GET() {
       .from("reviews")
       .select("name, rating, review_text, created_at")
       .eq("approved", true)
+      .eq("archived", false)
       .gte("rating", 4)
       .order("created_at", { ascending: false })
       .limit(12);

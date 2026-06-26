@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+﻿import type { CSSProperties } from "react";
 
 type WavyMarqueeProps = {
   /** Words to scroll. Rendered twice back-to-back so the -50% loop is seamless. */

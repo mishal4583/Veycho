@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import TransitionLink from "@/components/TransitionLink";
 import PromoBar from "@/components/PromoBar";
 import Grain from "@/components/Grain";
@@ -7,7 +7,9 @@ import Reveal from "@/components/Reveal";
 import WavyMarquee from "@/components/WavyMarquee";
 import GalleryWall, { type GalleryImage } from "@/components/GalleryWall";
 import AiConcierge from "@/components/AiConcierge";
+import WhatsAppFAB from "@/components/WhatsAppFAB";
 import { createClient } from "@/lib/supabase/server";
+import { getSiteContent } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Gallery — Veycho Resto-Cafe · Wayanad",
@@ -37,11 +39,11 @@ const HOME = ["Captured at Veycho", "Good food", "Good vibes", "Stay a while"];
 const VEYCHO = Array.from({ length: 8 }, () => "Veycho");
 
 export default async function GalleryPage() {
-  const images = await getImages();
+  const [images, c] = await Promise.all([getImages(), getSiteContent()]);
 
   return (
     <>
-      <PromoBar />
+      <PromoBar message={c.promo.message} />
       <Grain />
 
       <main style={{ position: "relative", background: "#f1e6d0" }}>
@@ -129,7 +131,7 @@ export default async function GalleryPage() {
               marginBottom: 10,
             }}
           >
-            VEYCHO · WAYANAD · SINCE 2020
+            {c.galleryPage.heroLabel}
           </Reveal>
 
           <Reveal
@@ -146,7 +148,7 @@ export default async function GalleryPage() {
               margin: 0,
             }}
           >
-            The Gallery
+            {c.galleryPage.heroTitle}
           </Reveal>
 
           <Reveal
@@ -162,7 +164,7 @@ export default async function GalleryPage() {
               margin: "22px 0 0",
             }}
           >
-            Every plate, pour &amp; good time — in pictures.
+            {c.galleryPage.heroTagline}
           </Reveal>
 
           {/* dark scallop drips down → flows into the wavy marquee band */}
@@ -213,7 +215,7 @@ export default async function GalleryPage() {
                 marginBottom: 8,
               }}
             >
-              MOMENTS · MEMORIES · MEALS
+              {c.galleryPage.sectionLabel}
             </Reveal>
             <Reveal
               as="h2"
@@ -228,7 +230,7 @@ export default async function GalleryPage() {
                 textTransform: "uppercase",
               }}
             >
-              Life at Veycho
+              {c.galleryPage.sectionHeading}
             </Reveal>
 
             <GalleryWall items={images} />
@@ -308,6 +310,7 @@ export default async function GalleryPage() {
       </main>
 
       <AiConcierge />
+      <WhatsAppFAB phone={c.visit.phone} />
     </>
   );
 }

@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+﻿import type { CSSProperties } from "react";
 
 type ScallopProps = {
   /** Which edge of the parent section to attach the scallops to. */

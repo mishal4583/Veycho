@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import Reveal from "./Reveal";
@@ -281,7 +281,7 @@ function Lightbox({
           zIndex: 6,
         }}
       >
-        ✕
+        âœ•
       </button>
 
       {/* Arrows are pinned to the viewport edges (not in the image's flex row),
@@ -303,7 +303,7 @@ function Lightbox({
             zIndex: 5,
           }}
         >
-          ‹
+          ”¹
         </button>
       )}
       {total > 1 && (
@@ -322,7 +322,7 @@ function Lightbox({
             zIndex: 5,
           }}
         >
-          ›
+          ”º
         </button>
       )}
 
@@ -393,9 +393,9 @@ function Lightbox({
 /** Shown before any photos are uploaded — keeps the page on-brand, never blank. */
 function EmptyWall() {
   const tiles = [
-    { bg: "#edb63f", emoji: "☕", rot: -3 },
-    { bg: "#0b2c39", emoji: "🍔", rot: 2 },
-    { bg: "#c9d6c3", emoji: "🌿", rot: -2 },
+    { bg: "#edb63f", emoji: "â˜•", rot: -3 },
+    { bg: "#0b2c39", emoji: "🍝”", rot: 2 },
+    { bg: "#c9d6c3", emoji: "🍝Œ¿", rot: -2 },
     { bg: "#e9c7a6", emoji: "✦", rot: 3 },
   ];
   return (

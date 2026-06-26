@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import TransitionLink from "./TransitionLink";
 import {
@@ -260,7 +260,7 @@ function DesktopMenu({
           }}
         >
           {content.description}{" "}
-          <span style={{ color: "#11262f", fontWeight: 700 }}>Scroll ↓</span>
+          <span style={{ color: "#11262f", fontWeight: 700 }}>Scroll ←“</span>
         </Reveal>
       </div>
 

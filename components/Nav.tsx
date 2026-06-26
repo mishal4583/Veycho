@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useState, type CSSProperties } from "react";
@@ -36,15 +36,28 @@ function sectionIsLight(el: Element): boolean {
 // Curtain geometry (WAVE_TILE/WAVE_DEPTH/waveBg/WAVES) is shared with the
 // site-wide page transition — see lib/wave.ts.
 
-const LINKS = [
-  { label: "Menu", kind: "route", href: "/menu", note: "Tonight’s composed plates" },
-  { label: "Visit", kind: "scroll", id: "visit", note: "Hours & directions" },
-  { label: "Gallery", kind: "route", href: "/gallery", note: "Inside Veycho" },
-] as const;
+function IgIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
+
+const IG_GRADIENT = "linear-gradient(135deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)";
+
+const LINK_NOTES = {
+  Menu: "Tonight’s composed plates",
+  Explore: "Discover Wayanad",
+  Gallery: "Inside Veycho",
+  Visit: "Hours & directions",
+} as const;
 
 /* ---- mobile "sticker": a hand-drawn, wavy-edged ellipse badge ----
    A closed SVG path traced around an ellipse whose radius gently undulates
-   (cos(bumps·θ)), smoothed through its points with a Catmull-Rom → cubic
+   (cos(bumps·Î¸)), smoothed through its points with a Catmull-Rom → cubic
    conversion so the edge reads as an organic wavy oval, not a gear. */
 const STICKER_W = 184;
 const STICKER_H = 100;
@@ -91,6 +104,13 @@ export default function Nav({
 }: {
   content?: NavContent;
 }) {
+  const links = [
+    { label: content.menuLabel,    kind: "route"  as const, href: "/menu",    note: LINK_NOTES.Menu    },
+    { label: content.galleryLabel, kind: "route"  as const, href: "/gallery", note: LINK_NOTES.Gallery },
+    { label: content.visitLabel,   kind: "scroll" as const, id: "visit",      note: LINK_NOTES.Visit   },
+    { label: content.exploreLabel, kind: "route"  as const, href: "/explore", note: LINK_NOTES.Explore },
+  ];
+
   const { navigate } = usePageTransition();
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [isMobile, setIsMobile] = useState(false);
@@ -116,10 +136,19 @@ export default function Nav({
       const sections = Array.from(
         document.querySelectorAll<HTMLElement>("#vc-stack > *")
       );
-      const under = sections.find((el) => {
+      let under: HTMLElement | null | undefined = sections.find((el) => {
         const r = el.getBoundingClientRect();
         return r.top <= probeY && r.bottom > probeY;
       });
+      // Fallback for pages without #vc-stack (explore, menu, gallery …):
+      // probe whatever element sits at the navbar's vertical centre.
+      if (!under) {
+        let el = document.elementFromPoint(window.innerWidth / 2, probeY) as HTMLElement | null;
+        while (el && getComputedStyle(el).backgroundColor === "rgba(0, 0, 0, 0)") {
+          el = el.parentElement as HTMLElement | null;
+        }
+        under = el ?? undefined;
+      }
       if (under) setTheme(sectionIsLight(under) ? "light" : "dark");
     };
 
@@ -162,16 +191,21 @@ export default function Nav({
   }, [menuOpen]);
 
   const goVisit = () => {
-    // The menu is already a full-screen curtain, so hand straight off to the
-    // page transition (immediate = no second rise), scroll behind it, reveal.
     setMenuOpen(false);
-    navigate({ type: "scroll", id: "visit" }, { immediate: true });
+    if (window.location.pathname === "/") {
+      navigate({ type: "scroll", id: "visit" }, { immediate: true });
+    } else {
+      navigate({ type: "route", href: "/#visit" });
+    }
   };
 
-  // Tapping the wordmark inside the open menu goes home (top), same hand-off.
   const goHome = () => {
     setMenuOpen(false);
-    navigate({ type: "scroll", id: "top" }, { immediate: true });
+    if (window.location.pathname === "/") {
+      navigate({ type: "scroll", id: "top" }, { immediate: true });
+    } else {
+      navigate({ type: "route", href: "/" });
+    }
   };
 
   // On mobile the bar is a solid dark rectangle, so force the light-on-dark set.
@@ -198,10 +232,14 @@ export default function Nav({
         >
           {/* left: Veycho wordmark */}
           <a
-            href="#top"
+            href="/"
             onClick={(e) => {
               e.preventDefault();
-              scrollToId("top");
+              if (window.location.pathname === "/") {
+                scrollToId("top");
+              } else {
+                navigate({ type: "route", href: "/" });
+              }
             }}
             style={{
               fontFamily: "var(--font-baloo), sans-serif",
@@ -219,33 +257,71 @@ export default function Nav({
 
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <TransitionLink
-              href="/gallery"
-              style={{ ...pill, background: "transparent", color: t.ink, border: `2px solid ${t.ink}` }}
-            >
-              {content.galleryLabel}
-            </TransitionLink>
-            <TransitionLink
               href="/menu"
               style={{ ...pill, background: t.menuBg, color: t.menuText, border: `2px solid ${t.menuBg}` }}
             >
               {content.menuLabel}
             </TransitionLink>
+            <TransitionLink
+              href="/gallery"
+              style={{ ...pill, background: "transparent", color: t.ink, border: `2px solid ${t.ink}` }}
+            >
+              {content.galleryLabel}
+            </TransitionLink>
             <a
-              href="#visit"
+              href="/#visit"
               onClick={(e) => {
                 e.preventDefault();
-                navigate({ type: "scroll", id: "visit" });
+                if (window.location.pathname === "/") {
+                  navigate({ type: "scroll", id: "visit" });
+                } else {
+                  navigate({ type: "route", href: "/#visit" });
+                }
               }}
               style={{ ...pill, background: "transparent", color: t.ink, border: `2px solid ${t.ink}` }}
             >
               {content.visitLabel}
             </a>
+            <TransitionLink
+              href="/explore"
+              style={{ ...pill, background: "transparent", color: t.ink, border: `2px solid ${t.ink}` }}
+            >
+              {content.exploreLabel}
+            </TransitionLink>
+            {content.instagram && (
+              <a
+                href={content.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Veycho on Instagram"
+                style={{
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  width: 42, height: 42, borderRadius: "50%", flexShrink: 0,
+                  border: `2px solid ${t.ink}`, color: t.ink, textDecoration: "none",
+                  transition: "background .25s ease, color .25s ease, border-color .25s ease",
+                }}
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget as HTMLAnchorElement;
+                  el.style.background = IG_GRADIENT;
+                  el.style.color = "#fff";
+                  el.style.borderColor = "transparent";
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget as HTMLAnchorElement;
+                  el.style.background = "transparent";
+                  el.style.color = t.ink;
+                  el.style.borderColor = t.ink;
+                }}
+              >
+                <IgIcon size={17} />
+              </a>
+            )}
           </div>
         </nav>
       )}
 
       {/* ---- Mobile: wavy "sticker" badge — brand + hamburger in one. Sits
-           above the overlay so its lines morph to ✕ and it doubles as close. ---- */}
+           above the overlay so its lines morph to âœ• and it doubles as close. ---- */}
       {isMobile && (
         <button
           aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -421,7 +497,7 @@ export default function Nav({
                 gap: 6,
               }}
             >
-              {LINKS.map((l, i) => {
+              {links.map((l, i) => {
                 const reveal: CSSProperties = {
                   transform: menuOpen ? "translateY(0)" : "translateY(34px)",
                   opacity: menuOpen ? 1 : 0,
@@ -531,19 +607,40 @@ export default function Nav({
                   color: "#edb63f",
                 }}
               >
-                Open daily · 11 AM – 10 PM
+                {content.hours}
               </span>
-              <a
-                href="tel:+919292619419"
-                style={{
-                  fontFamily: "var(--font-hanken), system-ui, sans-serif",
-                  fontSize: 15,
-                  color: "#f4ead6",
-                  textDecoration: "none",
-                }}
-              >
-                +91 92926 19419
-              </a>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <a
+                  href={`tel:${content.phone.replace(/\s+/g, "")}`}
+                  style={{
+                    fontFamily: "var(--font-hanken), system-ui, sans-serif",
+                    fontSize: 15,
+                    color: "#f4ead6",
+                    textDecoration: "none",
+                  }}
+                >
+                  {content.phone}
+                </a>
+                {content.instagram && (
+                  <a
+                    href={content.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Instagram"
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 7,
+                      background: IG_GRADIENT,
+                      borderRadius: 100, padding: "7px 14px",
+                      color: "#fff", textDecoration: "none",
+                      fontFamily: "var(--font-baloo), sans-serif",
+                      fontWeight: 700, fontSize: 12, letterSpacing: ".06em",
+                    }}
+                  >
+                    <IgIcon size={14} />
+                    Instagram
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         </div>

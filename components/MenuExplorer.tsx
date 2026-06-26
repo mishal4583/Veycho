@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useState, type CSSProperties } from "react";
+import { useState, useCallback, type CSSProperties } from "react";
 import Reveal from "./Reveal";
 import {
   DEFAULT_CONTENT,
@@ -63,6 +63,32 @@ function TagPill({ tag }: { tag: string }) {
 /* ---- striped image disc (shown when an item has no photo) ---- */
 const DISC_STRIPES =
   "repeating-linear-gradient(135deg,rgba(6,20,27,.05) 0 11px,transparent 11px 22px)";
+
+function DishDisc({ img, emoji, disc }: { img?: string; emoji: string; disc: string }) {
+  const [broken, setBroken] = useState(false);
+  const onError = useCallback(() => setBroken(true), []);
+  return (
+    <div
+      style={{
+        width: 185, height: 185, maxWidth: "62vw", borderRadius: "50%",
+        background: disc,
+        backgroundImage: (!img || broken) ? DISC_STRIPES : undefined,
+        overflow: "hidden", display: "flex", alignItems: "center",
+        justifyContent: "center", marginBottom: 20, flex: "none",
+      }}
+    >
+      {img && !broken ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={img} alt="" loading="lazy" onError={onError}
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+        />
+      ) : (
+        <span style={{ fontSize: 64, lineHeight: 1 }}>{emoji}</span>
+      )}
+    </div>
+  );
+}
 
 export default function MenuExplorer({
   categories = MENU_DEFAULT,
@@ -184,48 +210,62 @@ export default function MenuExplorer({
                   >
                     {b.label}
                   </div>
-                  <div
-                    style={{
-                      width: 185,
-                      height: 185,
-                      maxWidth: "62vw",
-                      borderRadius: "50%",
-                      background: entry.cat.disc,
-                      backgroundImage: entry.img ? undefined : DISC_STRIPES,
-                      overflow: "hidden",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginBottom: 20,
-                      flex: "none",
-                    }}
-                  >
-                    {entry.img ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={entry.img}
-                        alt={entry.name}
-                        loading="lazy"
-                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                      />
-                    ) : (
-                      <span style={{ fontSize: 64, lineHeight: 1 }}>
-                        {entry.cat.emoji}
-                      </span>
-                    )}
-                  </div>
+                  <DishDisc img={entry.img} emoji={entry.cat.emoji} disc={entry.cat.disc} />
                   <h3
                     style={{
                       fontFamily: "var(--font-baloo), sans-serif",
                       fontWeight: 700,
                       color: "#11262f",
                       fontSize: 22,
-                      margin: "0 0 12px",
+                      margin: "0 0 6px",
                       lineHeight: 1.15,
                     }}
                   >
                     {entry.name}
                   </h3>
+
+                  {/* meta badges row */}
+                  {(entry.is_veg || entry.is_popular || entry.is_chef_special || (entry.spice_level ?? 0) > 0) && (
+                    <div style={{ display: "flex", gap: 6, justifyContent: "center", flexWrap: "wrap", marginBottom: 8 }}>
+                      {entry.is_veg && (
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 3, background: "#2f7d4f", color: "#fff", fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700, fontSize: 9, letterSpacing: ".08em", padding: "2px 7px", borderRadius: 100 }}>
+                          ● VEG
+                        </span>
+                      )}
+                      {entry.is_chef_special && (
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 3, background: "#c5613a", color: "#fff", fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700, fontSize: 9, letterSpacing: ".08em", padding: "2px 7px", borderRadius: 100 }}>
+                          ★ CHEF
+                        </span>
+                      )}
+                      {entry.is_popular && (
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 3, background: "#0b2c39", color: "#edb63f", fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700, fontSize: 9, letterSpacing: ".08em", padding: "2px 7px", borderRadius: 100 }}>
+                          🔥 POPULAR
+                        </span>
+                      )}
+                      {(entry.spice_level ?? 0) > 0 && (
+                        <span style={{ fontSize: 11, letterSpacing: 1 }}>
+                          {"🌶".repeat(Math.min(entry.spice_level ?? 0, 5))}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {entry.description && (
+                    <p style={{
+                      fontFamily: "var(--font-hanken), system-ui, sans-serif",
+                      fontSize: 12,
+                      color: "rgba(17,38,47,.65)",
+                      lineHeight: 1.5,
+                      margin: "0 0 10px",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                    }}>
+                      {entry.description}
+                    </p>
+                  )}
+
                   <div
                     style={{
                       fontFamily: "var(--font-anton), sans-serif",
@@ -348,28 +388,47 @@ export default function MenuExplorer({
                       key={it.name}
                       style={{
                         display: "flex",
-                        alignItems: "baseline",
+                        alignItems: "flex-start",
                         justifyContent: "space-between",
                         gap: 12,
                         padding: "9px 0",
                         borderTop: "1px dashed rgba(17,38,47,.2)",
                       }}
                     >
-                      <span
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          flexWrap: "wrap",
-                          gap: 8,
-                          fontFamily: "var(--font-baloo), sans-serif",
-                          fontWeight: 600,
-                          fontSize: 15,
-                          lineHeight: 1.3,
-                          color: "#11262f",
-                        }}
-                      >
-                        {it.name}
-                        {it.tag && <TagPill tag={it.tag} />}
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            flexWrap: "wrap",
+                            gap: 6,
+                            fontFamily: "var(--font-baloo), sans-serif",
+                            fontWeight: 600,
+                            fontSize: 15,
+                            lineHeight: 1.3,
+                            color: "#11262f",
+                          }}
+                        >
+                          {it.is_veg && (
+                            <span style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: "#2f7d4f", flexShrink: 0 }} />
+                          )}
+                          {it.name}
+                          {it.tag && <TagPill tag={it.tag} />}
+                          {it.is_popular && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: ".06em", color: "#c5613a" }}>🔥</span>}
+                          {it.is_chef_special && <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: ".06em", color: "#c5613a" }}>★</span>}
+                        </span>
+                        {it.description && (
+                          <span style={{
+                            display: "block",
+                            fontFamily: "var(--font-hanken), system-ui, sans-serif",
+                            fontSize: 12,
+                            color: "rgba(17,38,47,.55)",
+                            lineHeight: 1.45,
+                            marginTop: 2,
+                          }}>
+                            {it.description}
+                          </span>
+                        )}
                       </span>
                       <span
                         style={{
@@ -377,6 +436,8 @@ export default function MenuExplorer({
                           fontSize: 17,
                           color: "#c5613a",
                           whiteSpace: "nowrap",
+                          alignSelf: "flex-start",
+                          paddingTop: 2,
                         }}
                       >
                         {it.price}

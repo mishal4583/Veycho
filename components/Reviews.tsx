@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Reveal from "./Reveal";
@@ -28,7 +28,7 @@ const FALLBACK: Card[] = [
   { quote: "The Pothum Kaal beef ribs are the highlight — slow-cooked, tender and rich with deep spices. Veycho nails traditional flavours.", author: "Ben J · ★★★★★" },
   { quote: "Ghee rice and chicken curry, flavourful and perfectly cooked; crispy chicken fingers and a really nice, welcoming ambience.", author: "Ashif N · ★★★★★" },
   { quote: "The Al-di-Funghi chicken pasta beats every pasta I’ve tried so far. Staff, service and atmosphere — 10/10.", author: "Gokul Krish M · ★★★★" },
-  { quote: "A really well-done café for a quick grab or a proper meal — genuine rates, good service and solid healthy options too.", author: "Bharat S · ★★★★" },
+  { quote: "A really well-done cafÃ© for a quick grab or a proper meal — genuine rates, good service and solid healthy options too.", author: "Bharat S · ★★★★" },
   { quote: "Delicious dishes, and the staff were genuinely warm and customer-friendly.", author: "Athulya · ★★★★★" },
 ];
 
@@ -43,7 +43,7 @@ function truncate(s: string, n = 170) {
  * four edges ripple — the same smooth bump (no sharp cusps) as the site's Scallop
  * dividers. Built per-card from its w/h so the bumps stay round, and kept to a
  * single mask layer (a filled SVG path) so it renders reliably without depending
- * on `mask-composite`. Bumps dip inward, so the card never grows past w×h.
+ * on `mask-composite`. Bumps dip inward, so the card never grows past wÃ—h.
  */
 function wavyMask(w: number, h: number): string {
   const a = 10; // how far each perforation dips inward (px)
@@ -62,7 +62,7 @@ function wavyMask(w: number, h: number): string {
     const x = i * bx;
     d += ` C${f(x + qx)},0 ${f(x + qx)},${a} ${f(x + bx / 2)},${a} C${f(x + bx - qx)},${a} ${f(x + bx - qx)},0 ${f(x + bx)},0`;
   }
-  // right edge (↓), bumps dip left
+  // right edge (←“), bumps dip left
   for (let i = 0; i < ny; i++) {
     const y = i * by;
     d += ` C${w},${f(y + qy)} ${w - a},${f(y + qy)} ${w - a},${f(y + by / 2)} C${w - a},${f(y + by - qy)} ${w},${f(y + by - qy)} ${w},${f(y + by)}`;
@@ -72,7 +72,7 @@ function wavyMask(w: number, h: number): string {
     const x = w - i * bx;
     d += ` C${f(x - qx)},${h} ${f(x - qx)},${h - a} ${f(x - bx / 2)},${h - a} C${f(x - bx + qx)},${h - a} ${f(x - bx + qx)},${h} ${f(x - bx)},${h}`;
   }
-  // left edge (↑), bumps dip right
+  // left edge (→), bumps dip right
   for (let i = 0; i < ny; i++) {
     const y = h - i * by;
     d += ` C0,${f(y - qy)} ${a},${f(y - qy)} ${a},${f(y - by / 2)} C${a},${f(y - by + qy)} 0,${f(y - by + qy)} 0,${f(y - by)}`;

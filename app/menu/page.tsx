@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import TransitionLink from "@/components/TransitionLink";
 import PromoBar from "@/components/PromoBar";
 import Grain from "@/components/Grain";
 import Scallop from "@/components/Scallop";
 import Reveal from "@/components/Reveal";
 import AiConcierge from "@/components/AiConcierge";
+import WhatsAppFAB from "@/components/WhatsAppFAB";
 import MenuExplorer from "@/components/MenuExplorer";
 import { getMenu, getSiteContent } from "@/lib/content";
 
@@ -12,6 +13,16 @@ export const metadata: Metadata = {
   title: "Menu — Veycho Resto-Cafe · Wayanad",
   description:
     "The full Veycho menu — soups, salads, starters, mains, burgers, pasta, sandwiches and signature mojitos. Continental flavours in Kalpetta, Wayanad.",
+  openGraph: {
+    title: "Menu — Veycho Resto-Cafe · Wayanad",
+    description: "Soups, salads, starters, mains, burgers, pasta, sandwiches and signature mojitos. Continental flavours in Kalpetta, Wayanad.",
+    images: [{ url: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&q=80", width: 1200, height: 800, alt: "Veycho Menu" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Menu — Veycho Resto-Cafe",
+    images: ["https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&q=80"],
+  },
 };
 
 // Menu + copy are editable from the admin — render on each request.
@@ -266,6 +277,7 @@ export default async function MenuPage() {
       </main>
 
       <AiConcierge />
+      <WhatsAppFAB phone={c.visit.phone} />
     </>
   );
 }

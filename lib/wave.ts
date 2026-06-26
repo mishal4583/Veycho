@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Shared "wavy curtain" geometry — the gold + teal scalloped band that rises to
  * cover the screen. Used by both the mobile nav menu (components/Nav.tsx) and
  * the site-wide page transition (components/PageTransition.tsx) so the two read

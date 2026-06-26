@@ -10,6 +10,8 @@ import {
   DEFAULT_CONTENT,
   type SiteContent,
   type JourneyChapter,
+  type ExploreSectionContent,
+  type ExplorePageContent,
 } from "@/lib/content-defaults";
 import type { Json } from "@/lib/supabase/types";
 
@@ -103,6 +105,8 @@ type Form = {
   };
   menuPage: SiteContent["menuPage"];
   galleryPage: SiteContent["galleryPage"];
+  exploreSection: ExploreSectionContent;
+  explorePage: ExplorePageContent;
 };
 
 const d = DEFAULT_CONTENT;
@@ -166,6 +170,8 @@ export default function SiteContentAdmin() {
       }),
       menuPage: g("menu_page", d.menuPage),
       galleryPage: g("gallery_page", d.galleryPage),
+      exploreSection: g("explore_section", d.exploreSection),
+      explorePage: g("explore_page", d.explorePage),
     });
   }, [sc.isFetched, sc.data]);
 
@@ -197,6 +203,8 @@ export default function SiteContentAdmin() {
         { section: "footer", data: form.footer },
         { section: "menu_page", data: form.menuPage },
         { section: "gallery_page", data: form.galleryPage },
+        { section: "explore_section", data: form.exploreSection },
+        { section: "explore_page", data: form.explorePage },
       ] as unknown as { section: string; data: Json }[];
 
       const { error: scErr } = await supabase
@@ -290,8 +298,9 @@ export default function SiteContentAdmin() {
         </Card>
 
         <Card title="Navigation labels">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <Field label="Menu button" value={form.nav.menuLabel} onChange={(v) => patch("nav", { menuLabel: v })} />
+            <Field label="Explore button" value={form.nav.exploreLabel} onChange={(v) => patch("nav", { exploreLabel: v })} />
             <Field label="Gallery button" value={form.nav.galleryLabel} onChange={(v) => patch("nav", { galleryLabel: v })} />
             <Field label="Visit button" value={form.nav.visitLabel} onChange={(v) => patch("nav", { visitLabel: v })} />
           </div>
@@ -419,6 +428,45 @@ export default function SiteContentAdmin() {
             <Field label="Section eyebrow" value={form.galleryPage.sectionLabel} onChange={(v) => patch("galleryPage", { sectionLabel: v })} />
             <Field label="Section heading" value={form.galleryPage.sectionHeading} onChange={(v) => patch("galleryPage", { sectionHeading: v })} />
           </div>
+        </Card>
+
+        <Card title="Explore section (home page)" hint="The destinations strip shown on the home page before the footer.">
+          <Field label="Eyebrow" value={form.exploreSection.eyebrow} onChange={(v) => patch("exploreSection", { eyebrow: v })} />
+          <Field label="Heading" value={form.exploreSection.heading} onChange={(v) => patch("exploreSection", { heading: v })} />
+          <Field label="Description" value={form.exploreSection.description} area onChange={(v) => patch("exploreSection", { description: v })} />
+        </Card>
+
+        <Card title="Explore page (hero)" hint="The /explore page hero. Title supports two lines — use a newline (Shift+Enter) to split; the second line renders in gold.">
+          <div>
+            <span className={labelCls}>Hero image</span>
+            {form.explorePage.heroImageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={form.explorePage.heroImageUrl}
+                alt=""
+                className="h-28 w-full object-cover rounded mb-2"
+              />
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              className="text-sm"
+              onChange={async (e) => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                const url = await uploadTo(f);
+                if (url) patch("explorePage", { heroImageUrl: url });
+              }}
+            />
+            <Field
+              label="…or paste an image URL"
+              value={form.explorePage.heroImageUrl}
+              onChange={(v) => patch("explorePage", { heroImageUrl: v })}
+              placeholder="https://…"
+            />
+          </div>
+          <Field label="Hero title (newline = gold second line)" value={form.explorePage.heroTitle} area onChange={(v) => patch("explorePage", { heroTitle: v })} />
+          <Field label="Hero description" value={form.explorePage.heroDescription} area onChange={(v) => patch("explorePage", { heroDescription: v })} />
         </Card>
       </div>
 

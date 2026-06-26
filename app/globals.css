@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    Veycho — global styles
    Custom keyframes + base reset ported from the original design.
    Colors / fonts are applied inline per-section for fidelity.
@@ -37,6 +37,14 @@ body {
 html.vc-cursor-on,
 html.vc-cursor-on * {
   cursor: none !important;
+}
+/* admin dashboard: restore native cursor (higher specificity wins the !important clash) */
+html.vc-cursor-on.vc-admin,
+html.vc-cursor-on.vc-admin * {
+  cursor: auto !important;
+}
+html.vc-admin .vc-cursor {
+  display: none !important;
 }
 .vc-cursor {
   position: fixed;
