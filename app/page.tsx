@@ -45,7 +45,7 @@ export default async function Home() {
       </div>
 
       <AiConcierge />
-      <WhatsAppFAB phone={c.visit.phone} />
+      <WhatsAppFAB phone={c.visit.phone} instagram={c.nav.instagram || undefined} />
     </>
   );
 }

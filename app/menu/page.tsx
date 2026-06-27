@@ -271,7 +271,7 @@ export default async function MenuPage() {
       </main>
 
       <AiConcierge />
-      <WhatsAppFAB phone={c.visit.phone} />
+      <WhatsAppFAB phone={c.visit.phone} instagram={c.nav.instagram || undefined} />
     </>
   );
 }

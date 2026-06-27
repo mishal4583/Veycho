@@ -198,8 +198,11 @@ export default async function ExplorePage() {
       </section>
 
       {/* ---- Destinations Grid (client island) ---- */}
-      <div id="destinations">
-        <ExploreGrid destinations={destinations} categories={categories} />
+      <div id="destinations" style={{ position: "relative", background: SURFACE }}>
+        <Scallop edge="top" color={DARK} />
+        <div style={{ paddingTop: 80 }}>
+          <ExploreGrid destinations={destinations} categories={categories} />
+        </div>
       </div>
 
       {/* Gold bridge: gives the footer's gold scallop a color anchor (dark grid → gold strip → dark footer) */}
@@ -219,7 +222,7 @@ export default async function ExplorePage() {
 
       <SiteFooter content={c.footer} />
       <AiConcierge />
-      <WhatsAppFAB phone={c.visit.phone} />
+      <WhatsAppFAB phone={c.visit.phone} instagram={c.nav.instagram || undefined} />
 
       <style>{`
         @media (max-width: 640px) {

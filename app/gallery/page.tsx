@@ -310,7 +310,7 @@ export default async function GalleryPage() {
       </main>
 
       <AiConcierge />
-      <WhatsAppFAB phone={c.visit.phone} />
+      <WhatsAppFAB phone={c.visit.phone} instagram={c.nav.instagram || undefined} />
     </>
   );
 }

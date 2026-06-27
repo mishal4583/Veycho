@@ -288,34 +288,6 @@ export default function Nav({
             >
               {content.exploreLabel}
             </TransitionLink>
-            {content.instagram && (
-              <a
-                href={content.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Veycho on Instagram"
-                style={{
-                  display: "inline-flex", alignItems: "center", justifyContent: "center",
-                  width: 42, height: 42, borderRadius: "50%", flexShrink: 0,
-                  border: `2px solid ${t.ink}`, color: t.ink, textDecoration: "none",
-                  transition: "background .25s ease, color .25s ease, border-color .25s ease",
-                }}
-                onMouseEnter={(e) => {
-                  const el = e.currentTarget as HTMLAnchorElement;
-                  el.style.background = IG_GRADIENT;
-                  el.style.color = "#fff";
-                  el.style.borderColor = "transparent";
-                }}
-                onMouseLeave={(e) => {
-                  const el = e.currentTarget as HTMLAnchorElement;
-                  el.style.background = "transparent";
-                  el.style.color = t.ink;
-                  el.style.borderColor = t.ink;
-                }}
-              >
-                <IgIcon size={17} />
-              </a>
-            )}
           </div>
         </nav>
       )}
@@ -609,7 +581,7 @@ export default function Nav({
               >
                 {content.hours}
               </span>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <a
                   href={`tel:${content.phone.replace(/\s+/g, "")}`}
                   style={{
@@ -621,25 +593,6 @@ export default function Nav({
                 >
                   {content.phone}
                 </a>
-                {content.instagram && (
-                  <a
-                    href={content.instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Instagram"
-                    style={{
-                      display: "inline-flex", alignItems: "center", gap: 7,
-                      background: IG_GRADIENT,
-                      borderRadius: 100, padding: "7px 14px",
-                      color: "#fff", textDecoration: "none",
-                      fontFamily: "var(--font-baloo), sans-serif",
-                      fontWeight: 700, fontSize: 12, letterSpacing: ".06em",
-                    }}
-                  >
-                    <IgIcon size={14} />
-                    Instagram
-                  </a>
-                )}
               </div>
             </div>
           </div>

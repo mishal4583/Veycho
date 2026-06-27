@@ -15,14 +15,18 @@ import { scrollToId } from "@/lib/scroll";
 import { WAVES, WAVE_DEPTH, WAVE_TILE, waveBg } from "@/lib/wave";
 
 /* ============================================================
-   Site-wide wavy-curtain page transition.
+   Site-wide wavy-curtain page transition — 3-phase design.
 
-   Any internal navigation routed through `navigate()` plays the same
-   gold + teal scalloped curtain the mobile menu uses: it rises to cover
-   the screen, the route change (or in-page scroll) happens *behind* the
-   curtain, then the curtain recedes to reveal the new page. Because both
-   directions go through here, "forward" and "back" navigations animate
-   identically — on desktop and mobile alike.
+   Phase sequence for a normal link click:
+     idle → cover → hold → reveal → idle
+
+   cover : curtain rises from below to cover the screen (COVER_MS).
+   hold  : curtain stays covering; router.push fires immediately so the
+           server has the full HOLD_MS window to respond before reveal.
+   reveal: curtain rises off the top, exposing the new page (REVEAL_MS).
+
+   The mobile-menu "snap" path (screen already covered) skips the cover
+   phase: snap → hold → reveal → idle.
    ============================================================ */
 
 type Target =
@@ -55,17 +59,17 @@ export function usePageTransition(): TransitionApi {
 }
 
 // idle  → parked below the fold
-// sweep → ONE continuous wipe, below → above; the page swaps invisibly at the
-//         instant it is fully covered (no pause, no second stroke)
-// snap  → jump straight to "covered" (used when the screen is already covered,
-//         e.g. the mobile menu) then hand off to "reveal"
-// reveal→ the second half only (covered → above), for the snap hand-off
-type Phase = "idle" | "sweep" | "snap" | "reveal";
+// cover → curtain rising from below to cover screen
+// hold  → fully covering; new page loads behind it
+// reveal→ curtain rising off the top to expose new page
+// snap  → instantly jump to covered (mobile menu handoff), then hold
+type Phase = "idle" | "cover" | "hold" | "reveal" | "snap";
 
-const SWEEP_MS = 520; // full single wipe (below → above)
-const REVEAL_MS = 340; // reveal-only half (covered → above), for the hand-off
-const COVER_AT = SWEEP_MS * 0.45; // slightly before mid-sweep: fire route push just as screen is covered
-const EASE = "cubic-bezier(.76,0,.24,1)";
+const COVER_MS  = 220; // rise from below to cover screen
+const HOLD_MS   = 320; // hold covered while server responds
+const REVEAL_MS = 230; // rise off the top to expose new page
+const EASE      = "cubic-bezier(.76,0,.24,1)";
+const EASE_OUT  = "cubic-bezier(.16,1,.3,1)";
 
 function prefersReducedMotion(): boolean {
   return (
@@ -136,7 +140,7 @@ export default function PageTransition({ children }: { children: ReactNode }) {
         return;
       }
       if (phaseRef.current !== "idle") return; // ignore clicks mid-transition
-      const next: Phase = opts?.immediate ? "snap" : "sweep";
+      const next: Phase = opts?.immediate ? "snap" : "cover";
       pendingRef.current = target;
       phaseRef.current = next;
       lockScroll(true);
@@ -152,23 +156,38 @@ export default function PageTransition({ children }: { children: ReactNode }) {
     setPhase("idle");
   }, [lockScroll]);
 
-  // Drive the single continuous sweep.
   useEffect(() => {
-    if (phase === "sweep") {
+    if (phase === "cover") {
       clearTimers();
-      // Swap the page at the covered mid-point — the wipe never stops, so this
-      // reads as one motion: the old page wipes up, the new page wipes in.
+      // Move to hold once the cover animation completes.
       timersRef.current.push(
-        window.setTimeout(() => runAction(pendingRef.current), COVER_AT),
-        window.setTimeout(finishIdle, SWEEP_MS)
+        window.setTimeout(() => setPhase("hold"), COVER_MS)
+      );
+    } else if (phase === "hold") {
+      clearTimers();
+      // Fire the route push immediately — the page loads while we hold.
+      runAction(pendingRef.current);
+      // Double-RAF before reveal so the browser commits the hold state
+      // (transition:none) before we re-enable transitions for the upward sweep.
+      timersRef.current.push(
+        window.setTimeout(() => {
+          rafRef.current = window.requestAnimationFrame(() => {
+            rafRef.current = window.requestAnimationFrame(() => setPhase("reveal"));
+          });
+        }, HOLD_MS)
       );
     } else if (phase === "snap") {
-      // Screen is already covered (mobile menu): act now, then reveal-sweep.
+      // Screen is already covered (mobile menu). Fire the action immediately,
+      // then hold for HOLD_MS before revealing so the server can respond.
       clearTimers();
       runAction(pendingRef.current);
-      rafRef.current = window.requestAnimationFrame(() => {
-        rafRef.current = window.requestAnimationFrame(() => setPhase("reveal"));
-      });
+      timersRef.current.push(
+        window.setTimeout(() => {
+          rafRef.current = window.requestAnimationFrame(() => {
+            rafRef.current = window.requestAnimationFrame(() => setPhase("reveal"));
+          });
+        }, HOLD_MS)
+      );
     } else if (phase === "reveal") {
       clearTimers();
       timersRef.current.push(window.setTimeout(finishIdle, REVEAL_MS));
@@ -187,19 +206,20 @@ export default function PageTransition({ children }: { children: ReactNode }) {
 }
 
 /* ---- the full-screen curtain ----
-   One single, continuous upward wipe (no rise-then-recede): the band starts
-   below the viewport, sweeps up to cover, then keeps going off the top to
-   reveal the new page. Scalloped on both edges so the leading edge is wavy
-   on the way in *and* on the way out. */
+   cover : rises from below to cover  (translateY 100% → 0%)
+   hold  : stays put, no transition   (translateY 0%)
+   reveal: rises further off the top  (translateY 0% → -100%)
+   snap  : instantly snaps to covered (translateY 0%, no transition)
+   idle  : parked below the fold      (translateY 100%, no transition) */
 function Curtain({ phase }: { phase: Phase }) {
   const idle = phase === "idle";
-  // below → covering → above, always travelling the same direction.
+
   const transform =
-    phase === "snap"
-      ? "translateY(0)" // already covered (held), about to reveal
-      : phase === "sweep" || phase === "reveal"
-        ? "translateY(-100%)" // sweep all the way up and off the top
-        : "translateY(100%)"; // idle: parked below the fold
+    phase === "idle"
+      ? "translateY(100%)"   // parked below
+      : phase === "reveal"
+        ? "translateY(-100%)" // fully above, exposing new page
+        : "translateY(0)";    // cover / hold / snap — at center covering screen
 
   const scallop = (color: string, dir: "up" | "down"): CSSProperties =>
     ({
@@ -229,15 +249,16 @@ function Curtain({ phase }: { phase: Phase }) {
       }}
     >
       {WAVES.map((wv, i) => {
-        // Transition only while actively sweeping; snap otherwise so the
-        // "immediate" hand-off and the idle re-park don't animate. A small
-        // per-layer delay fans the two colours so it reads as a wave, not a slab.
+        // Animate only during cover (rising in) and reveal (rising out).
+        // Hold and snap use "none" so the curtain stays still — this is also
+        // what ensures the double-RAF trick correctly primes the reveal sweep.
         const transition =
-          phase === "sweep"
-            ? `transform ${SWEEP_MS}ms ${EASE} ${wv.inDelay}s`
+          phase === "cover"
+            ? `transform ${COVER_MS}ms ${EASE} ${wv.inDelay}s`
             : phase === "reveal"
-              ? `transform ${REVEAL_MS}ms ${EASE} ${wv.inDelay}s`
+              ? `transform ${REVEAL_MS}ms ${EASE_OUT} ${wv.outDelay}s`
               : "none";
+
         return (
           <div
             key={wv.color}

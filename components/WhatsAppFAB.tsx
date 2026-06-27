@@ -7,6 +7,8 @@ const GOLD    = "#edb63f";
 const DARK    = "#071821";
 const CREAM   = "#f4ead6";
 
+const IG_GRADIENT = "linear-gradient(135deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)";
+
 function WhatsAppIcon({ size = 26 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -16,43 +18,84 @@ function WhatsAppIcon({ size = 26 }: { size?: number }) {
   );
 }
 
-export default function WhatsAppFAB({ phone }: { phone: string }) {
-  const [hovered, setHovered] = useState(false);
+function IgIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
+
+const fabBase = {
+  position: "fixed" as const,
+  right: 26,
+  zIndex: 9000,
+  width: 56,
+  height: 56,
+  borderRadius: "50%",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  border: `2px solid ${GOLD}`,
+  textDecoration: "none",
+  transition: "background .25s ease, color .25s ease, box-shadow .25s ease, transform .25s ease",
+};
+
+export default function WhatsAppFAB({ phone, instagram }: { phone: string; instagram?: string }) {
+  const [waHovered, setWaHovered] = useState(false);
+  const [igHovered, setIgHovered] = useState(false);
 
   const digits = phone.replace(/\D/g, "");
   const waLink = `https://wa.me/${digits}?text=${encodeURIComponent("Hi! I'd like to know more about Veycho Resto-Cafe.")}`;
 
   return (
-    <a
-      href={waLink}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="Chat on WhatsApp"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        position: "fixed",
-        bottom: 100,
-        right: 26,
-        zIndex: 9000,
-        width: 64,
-        height: 64,
-        borderRadius: "50%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: hovered ? GOLD : SURFACE,
-        color: hovered ? DARK : CREAM,
-        border: `2px solid ${GOLD}`,
-        boxShadow: hovered
-          ? "0 6px 24px rgba(237,182,63,.4)"
-          : "0 4px 16px rgba(0,0,0,.45)",
-        textDecoration: "none",
-        transition: "background .25s ease, color .25s ease, box-shadow .25s ease, transform .25s ease",
-        transform: hovered ? "scale(1.08)" : "scale(1)",
-      }}
-    >
-      <WhatsAppIcon size={26} />
-    </a>
+    <>
+      {instagram && (
+        <a
+          href={instagram}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Veycho on Instagram"
+          onMouseEnter={() => setIgHovered(true)}
+          onMouseLeave={() => setIgHovered(false)}
+          style={{
+            ...fabBase,
+            bottom: 166,
+            background: igHovered ? IG_GRADIENT : SURFACE,
+            color: igHovered ? "#fff" : CREAM,
+            borderColor: igHovered ? "transparent" : GOLD,
+            boxShadow: igHovered
+              ? "0 6px 24px rgba(220,39,67,.35)"
+              : "0 4px 16px rgba(0,0,0,.45)",
+            transform: igHovered ? "scale(1.08)" : "scale(1)",
+          }}
+        >
+          <IgIcon size={22} />
+        </a>
+      )}
+
+      <a
+        href={waLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Chat on WhatsApp"
+        onMouseEnter={() => setWaHovered(true)}
+        onMouseLeave={() => setWaHovered(false)}
+        style={{
+          ...fabBase,
+          bottom: 100,
+          background: waHovered ? GOLD : SURFACE,
+          color: waHovered ? DARK : CREAM,
+          boxShadow: waHovered
+            ? "0 6px 24px rgba(237,182,63,.4)"
+            : "0 4px 16px rgba(0,0,0,.45)",
+          transform: waHovered ? "scale(1.08)" : "scale(1)",
+        }}
+      >
+        <WhatsAppIcon size={26} />
+      </a>
+    </>
   );
 }

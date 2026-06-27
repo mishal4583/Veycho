@@ -1009,7 +1009,7 @@ export default async function DestinationPage({
       </main>
 
       <AiConcierge />
-      <WhatsAppFAB phone={c.visit.phone} />
+      <WhatsAppFAB phone={c.visit.phone} instagram={c.nav.instagram || undefined} />
 
       <style>{`
         .dest-gallery-cell:hover .dest-gallery-img { transform: scale(1.06); }

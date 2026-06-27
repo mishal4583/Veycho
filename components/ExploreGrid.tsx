@@ -181,7 +181,7 @@ export default function ExploreGrid({
   const pills = [{ slug: "all", name: "All", icon: "✦" }, ...categories];
 
   return (
-    <div style={{ background: DARK }}>
+    <div style={{ background: SURFACE }}>
       {/* search + filter bar */}
       <div style={{ padding: "clamp(24px,5vw,40px) clamp(20px,5vw,48px) 0", maxWidth: 1280, margin: "0 auto" }}>
         {/* search */}
@@ -217,9 +217,9 @@ export default function ExploreGrid({
                 onClick={() => setActive(p.slug)}
                 style={{
                   display: "inline-flex", alignItems: "center", gap: 5,
-                  background: isActive ? GOLD : SURFACE,
-                  color: isActive ? DARK : MUTED,
-                  border: `1.5px solid ${isActive ? GOLD : "rgba(237,182,63,.2)"}`,
+                  background: isActive ? GOLD : "transparent",
+                  color: isActive ? DARK : CREAM,
+                  border: `1.5px solid ${isActive ? GOLD : "rgba(244,234,214,.28)"}`,
                   borderRadius: 100, padding: "7px 16px",
                   fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700,
                   fontSize: 12, letterSpacing: ".06em", cursor: "pointer",
