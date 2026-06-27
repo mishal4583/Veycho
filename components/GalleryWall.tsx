@@ -394,7 +394,7 @@ function Lightbox({
 function EmptyWall() {
   const tiles = [
     { bg: "#edb63f", emoji: "â˜•", rot: -3 },
-    { bg: "#0b2c39", emoji: "🍝”", rot: 2 },
+    { bg: "#0b2c39", emoji: "🍝”", rot: 2 },
     { bg: "#c9d6c3", emoji: "🍝Œ¿", rot: -2 },
     { bg: "#e9c7a6", emoji: "✦", rot: 3 },
   ];

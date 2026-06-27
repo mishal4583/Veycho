@@ -17,7 +17,7 @@ const BALOO = "var(--font-baloo), sans-serif";
 const HANKEN = "var(--font-hanken), system-ui, sans-serif";
 
 const GREETING =
-  "Hi, welcome to Veycho! 🍝ƒ I can walk you through our signature Wayanadan dishes, opening hours or how to find us. What are you craving?";
+  "Hi, welcome to Veycho! 🍝 I can walk you through our signature Wayanadan dishes, opening hours or how to find us. What are you craving?";
 const CHIPS = ["Signature dishes?", "Opening hours?", "Where are you?", "Veg options?"];
 
 function getSessionId() {
@@ -309,7 +309,7 @@ export default function AiConcierge() {
                 lineHeight: 1,
               }}
             >
-              âœ•
+              ✕
             </button>
           </div>
 

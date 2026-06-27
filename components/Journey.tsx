@@ -96,6 +96,26 @@ function buildChapters(list: JourneyChapter[]): Chapter[] {
 const ANTON = "var(--font-anton), sans-serif";
 const BALOO = "var(--font-baloo), sans-serif";
 
+function ArrowRight({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+      <polyline points="12 5 19 12 12 19"/>
+    </svg>
+  );
+}
+
+function ArrowLeft({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <line x1="19" y1="12" x2="5" y2="12"/>
+      <polyline points="12 19 5 12 12 5"/>
+    </svg>
+  );
+}
+
 const CARD_W = 300;
 const CARD_H = 420;
 
@@ -572,11 +592,11 @@ export default function Journey({
                           fontWeight: 700,
                           fontSize: 12,
                           letterSpacing: ".04em",
-                          padding: "9px 16px",
+                          padding: "9px 18px",
                           borderRadius: 100,
                         }}
                       >
-                        Tap to read →
+                        Tap to read <ArrowRight size={13} />
                       </div>
                     </div>
                   </div>
@@ -663,7 +683,8 @@ export default function Journey({
                       style={{
                         alignSelf: "flex-start",
                         marginTop: 18,
-                        border: "1.5px solid rgba(7,24,33,.2)",
+                        display: "inline-flex", alignItems: "center", gap: 7,
+                        border: "1.5px solid rgba(7,24,33,.25)",
                         background: "transparent",
                         color: "#11262f",
                         fontFamily: BALOO,
@@ -674,7 +695,7 @@ export default function Journey({
                         cursor: "pointer",
                       }}
                     >
-                      ← Back to pages
+                      <ArrowLeft size={13} /> Back to pages
                     </button>
                   </div>
                 </div>
@@ -697,8 +718,8 @@ export default function Journey({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: 10,
-            paddingTop: 24,
+            gap: 12,
+            paddingTop: 32,
           }}
         >
           {chapters.map((c, i) => (
@@ -707,12 +728,15 @@ export default function Journey({
               className="sp-dot"
               data-d={i}
               style={{
-                width: 9,
-                height: 9,
+                display: "block",
+                width: 10,
+                height: 10,
                 borderRadius: "50%",
-                background: "rgba(244,234,214,.28)",
+                background: "rgba(244,234,214,.25)",
+                border: "1.5px solid rgba(237,182,63,.4)",
                 cursor: "pointer",
-                transition: "all .3s",
+                transition: "all .3s ease",
+                flexShrink: 0,
               }}
             />
           ))}
@@ -953,17 +977,18 @@ function MobileDeck({ chapters }: { chapters: Chapter[] }) {
                   style={{
                     marginTop: 20,
                     alignSelf: "flex-start",
+                    display: "inline-flex", alignItems: "center", gap: 8,
                     background: c.pillBg,
                     color: c.pillColor,
                     fontFamily: BALOO,
                     fontWeight: 700,
                     fontSize: 12,
                     letterSpacing: ".04em",
-                    padding: "9px 16px",
+                    padding: "9px 18px",
                     borderRadius: 100,
                   }}
                 >
-                  Tap to read →
+                  Tap to read <ArrowRight size={13} />
                 </span>
               </div>
             </div>
@@ -1045,7 +1070,8 @@ function MobileDeck({ chapters }: { chapters: Chapter[] }) {
                   style={{
                     alignSelf: "flex-start",
                     marginTop: 16,
-                    border: "1.5px solid rgba(7,24,33,.2)",
+                    display: "inline-flex", alignItems: "center", gap: 7,
+                    border: "1.5px solid rgba(7,24,33,.25)",
                     background: "transparent",
                     color: "#11262f",
                     fontFamily: BALOO,
@@ -1056,7 +1082,7 @@ function MobileDeck({ chapters }: { chapters: Chapter[] }) {
                     cursor: "pointer",
                   }}
                 >
-                  ← Back to pages
+                  <ArrowLeft size={13} /> Back to pages
                 </button>
               </div>
             )}
@@ -1065,18 +1091,17 @@ function MobileDeck({ chapters }: { chapters: Chapter[] }) {
       </div>
 
       {/* dots */}
-      <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         {chapters.map((c, i) => (
           <span
             key={c.ch}
             style={{
-              width: 9,
-              height: 9,
-              borderRadius: "50%",
-              background:
-                i === activeDot ? "#edb63f" : "rgba(244,234,214,.28)",
-              transform: i === activeDot ? "scale(1.4)" : "scale(1)",
-              transition: "all .3s",
+              display: "inline-block",
+              width: 10, height: 10, borderRadius: "50%",
+              backgroundColor: i === activeDot ? "#edb63f" : "rgba(244,234,214,.25)",
+              border: `1.5px solid ${i === activeDot ? "#edb63f" : "rgba(237,182,63,.4)"}`,
+              transform: i === activeDot ? "scale(1.3)" : "scale(1)",
+              transition: "all .3s ease",
             }}
           />
         ))}

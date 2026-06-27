@@ -141,7 +141,7 @@ export default async function MenuPage() {
             {mp.heroTagline}
           </Reveal>
 
-          {/* desktop → dark body; mobile → cream body */}
+          {/* mobile → cream, desktop → dark (gold hero waves directly into dark band) */}
           <div className="vcm-mobile"><Scallop edge="bottom" color="#f1e6d0" /></div>
           <div className="vcm-desktop"><Scallop edge="bottom" color="#071821" /></div>
         </section>
@@ -158,8 +158,9 @@ export default async function MenuPage() {
             paddingBottom: 46,
           }}
         >
-          {/* on mobile, cream section → dark footer needs a scallop */}
+          {/* cream section → dark footer: scallop on both desktop and mobile */}
           <div className="vcm-mobile"><Scallop edge="top" color="#f1e6d0" /></div>
+          <div className="vcm-desktop"><Scallop edge="top" color="#f4ead6" /></div>
 
           <div style={{ padding: "150px 0 40px" }}>
             {/* row 1 — huge, scrolls left */}

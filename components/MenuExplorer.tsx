@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useRef, type CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
+import { waveBg, WAVE_TILE } from "@/lib/wave";
 import Reveal from "./Reveal";
 import {
   DEFAULT_CONTENT,
@@ -16,6 +17,17 @@ const GOLD = "#edb63f";
 const CREAM = "#f4ead6";
 const MUTED = "#8aa1ab";
 const RUST  = "#c5613a";
+
+const CARD_PALETTE = [
+  { card: "#f6dd9b", disc: "#ecca6f" },
+  { card: "#ecc3ad", disc: "#dea98a" },
+  { card: "#c9d6c3", disc: "#b0c3aa" },
+  { card: "#e9c7a6", disc: "#dcb892" },
+  { card: "#b9d0c9", disc: "#9bbcb3" },
+  { card: "#f3e7cf", disc: "#e5d4b0" },
+  { card: "#cdd8c4", disc: "#b8c9ae" },
+  { card: "#e7cfa0", disc: "#d8bd86" },
+];
 
 type Entry = MenuItem & { cat: MenuCategory };
 
@@ -57,8 +69,8 @@ function DishDisc({ img, emoji, disc }: { img?: string; emoji: string; disc: str
   return (
     <div style={{
       width: 185, height: 185, maxWidth: "62vw", borderRadius: "50%",
-      background: disc,
-      backgroundImage: (!img || broken) ? DISC_STRIPES : undefined,
+      backgroundColor: disc,
+      backgroundImage: (!img || broken) ? DISC_STRIPES : "none",
       overflow: "hidden", display: "flex", alignItems: "center",
       justifyContent: "center", marginBottom: 16, flex: "none",
       boxShadow: "0 8px 28px rgba(0,0,0,.12)",
@@ -82,6 +94,7 @@ function FoodCard({ entry, index }: { entry: Entry; index: number }) {
   const b  = badgeFor(entry);
   const rot = index % 2 ? "1.2deg" : "-1.2deg";
   const spice = Math.min(entry.spice_level ?? 0, 4);
+  const palette = CARD_PALETTE[index % CARD_PALETTE.length];
 
   return (
     <article
@@ -89,9 +102,9 @@ function FoodCard({ entry, index }: { entry: Entry; index: number }) {
       style={{
         "--rot": rot,
         width: "100%", maxWidth: 320,
-        background: entry.cat.card,
+        background: palette.card,
         borderRadius: 200,
-        padding: "28px 26px 26px",
+        padding: "28px 32px 56px",
         display: "flex", flexDirection: "column",
         alignItems: "center", textAlign: "center",
         position: "relative",
@@ -108,31 +121,31 @@ function FoodCard({ entry, index }: { entry: Entry; index: number }) {
         {b.label}
       </div>
 
-      {/* veg indicator — top-right */}
-      {entry.is_veg !== undefined && (
-        <div style={{
-          position: "absolute", top: 22, right: 22,
-          width: 22, height: 22, borderRadius: 4,
-          border: `2px solid ${entry.is_veg ? "#2f7d4f" : "#c0392b"}`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: "rgba(255,255,255,.8)",
-        }}>
-          <div style={{ width: 10, height: 10, borderRadius: "50%", background: entry.is_veg ? "#2f7d4f" : "#c0392b" }} />
-        </div>
-      )}
-
       {/* image disc */}
       <div style={{ marginTop: 28 }}>
-        <DishDisc img={entry.img} emoji={entry.cat.emoji} disc={entry.cat.disc} />
+        <DishDisc img={entry.img} emoji={entry.cat.emoji} disc={palette.disc} />
       </div>
 
-      {/* name */}
-      <h3 style={{
-        fontFamily: "var(--font-baloo), sans-serif", fontWeight: 800,
-        color: "#11262f", fontSize: 20, margin: "0 0 6px", lineHeight: 1.2,
-      }}>
-        {entry.name}
-      </h3>
+      {/* name + veg indicator inline */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, margin: "0 0 6px" }}>
+        {entry.is_veg !== undefined && (
+          <div style={{
+            flexShrink: 0,
+            width: 18, height: 18, borderRadius: 3,
+            border: `2px solid ${entry.is_veg ? "#2f7d4f" : "#c0392b"}`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "rgba(255,255,255,.85)",
+          }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: entry.is_veg ? "#2f7d4f" : "#c0392b" }} />
+          </div>
+        )}
+        <h3 style={{
+          fontFamily: "var(--font-baloo), sans-serif", fontWeight: 800,
+          color: "#11262f", fontSize: 20, margin: 0, lineHeight: 1.2,
+        }}>
+          {entry.name}
+        </h3>
+      </div>
 
       {/* description */}
       {entry.description && (
@@ -201,33 +214,53 @@ export default function MenuExplorer({
         .vc-card:hover .vc-disc-img { transform: scale(1.07); }
         .menu-chips-scroll::-webkit-scrollbar { display: none; }
         .menu-chips-scroll { scrollbar-width: none; }
+
+        .vc-chip {
+          cursor: pointer; border-radius: 100px;
+          font-family: var(--font-baloo), sans-serif; letter-spacing: .02em;
+          font-size: 14px; padding: 11px 24px;
+          transition: all .34s cubic-bezier(.34,1.56,.64,1);
+          transform: scale(1);
+          will-change: transform;
+        }
+        .vc-chip:hover:not(.vc-chip-on) { transform: scale(1.06); opacity: .9; }
+        .vc-chip-on {
+          transform: scale(1.1);
+          box-shadow: 0 4px 18px rgba(237,182,63,.38);
+        }
+
+@keyframes vc-cards-in {
+          from { opacity: 0; transform: translateY(18px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .vc-cards-grid { animation: vc-cards-in .28s ease-out; }
       `}</style>
 
-      {/* ══════════ DESKTOP: oval-pill cards on dark ══════════ */}
+      {/* ══════════ DESKTOP: oval-pill cards on cream ══════════ */}
       <section
         className="vcm-desktop"
-        style={{ position: "relative", background: DARK, padding: "0 40px 130px", marginBottom: -1 }}
+        style={{ position: "relative", background: CREAM, paddingBottom: 100, marginBottom: -1 }}
       >
-        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
-          {/* sticky filter chips */}
+        {/* wavy chip band — full viewport width */}
+        <div>
+          {/* dark band */}
           <div style={{
+            background: DARK,
+            padding: "22px 40px 26px",
             display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center",
-            padding: "22px 0 46px",
-            position: "sticky", top: 34, background: DARK, zIndex: 20,
           }}>
             {chips.map((chip) => {
               const on = filter === chip.key;
               return (
-                <button key={chip.key} type="button" onClick={() => setFilter(chip.key)}
+                <button
+                  key={chip.key} type="button"
+                  className={`vc-chip${on ? " vc-chip-on" : ""}`}
+                  onClick={() => setFilter(chip.key)}
                   style={{
-                    cursor: "pointer",
-                    fontFamily: "var(--font-baloo), sans-serif", fontWeight: on ? 700 : 600,
-                    fontSize: 14, letterSpacing: ".02em",
-                    padding: "11px 22px", borderRadius: 100,
+                    fontWeight: on ? 700 : 600,
                     background: on ? GOLD : "transparent",
-                    color: on ? DARK : "#d9cdb5",
-                    border: `2px solid ${on ? GOLD : "rgba(244,234,214,.2)"}`,
-                    transition: "all .2s",
+                    color: on ? DARK : CREAM,
+                    border: `2px solid ${on ? GOLD : "rgba(244,234,214,.3)"}`,
                   }}
                 >
                   {chip.label}
@@ -235,13 +268,30 @@ export default function MenuExplorer({
               );
             })}
           </div>
+          {/* bottom wave: cream bumps rising */}
+          <div
+            style={{
+              height: 56,
+              backgroundColor: DARK,
+              backgroundImage: waveBg(CREAM, "up"),
+              backgroundSize: `${WAVE_TILE}px 56px`,
+              backgroundRepeat: "repeat-x",
+              backgroundPosition: "0 0",
+            }}
+          />
+        </div>
 
-          {/* card grid */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-            gap: 26, justifyItems: "center",
-          }}>
+        {/* card grid */}
+        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "52px 40px 0" }}>
+          <div
+            key={filter}
+            className="vc-cards-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+              gap: 26, justifyItems: "center",
+            }}
+          >
             {visible.map((entry, i) => (
               <FoodCard key={`${entry.cat.key}-${entry.name}`} entry={entry} index={i} />
             ))}
@@ -250,7 +300,7 @@ export default function MenuExplorer({
           {visible.length === 0 && (
             <div style={{ textAlign: "center", padding: "80px 0", color: MUTED }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>🍽️</div>
-              <p style={{ fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700, color: CREAM }}>
+              <p style={{ fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700, color: DARK }}>
                 No items in this category yet.
               </p>
             </div>

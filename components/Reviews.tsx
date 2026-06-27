@@ -28,7 +28,7 @@ const FALLBACK: Card[] = [
   { quote: "The Pothum Kaal beef ribs are the highlight — slow-cooked, tender and rich with deep spices. Veycho nails traditional flavours.", author: "Ben J · ★★★★★" },
   { quote: "Ghee rice and chicken curry, flavourful and perfectly cooked; crispy chicken fingers and a really nice, welcoming ambience.", author: "Ashif N · ★★★★★" },
   { quote: "The Al-di-Funghi chicken pasta beats every pasta I’ve tried so far. Staff, service and atmosphere — 10/10.", author: "Gokul Krish M · ★★★★" },
-  { quote: "A really well-done cafÃ© for a quick grab or a proper meal — genuine rates, good service and solid healthy options too.", author: "Bharat S · ★★★★" },
+  { quote: "A really well-done café for a quick grab or a proper meal — genuine rates, good service and solid healthy options too.", author: "Bharat S · ★★★★" },
   { quote: "Delicious dishes, and the staff were genuinely warm and customer-friendly.", author: "Athulya · ★★★★★" },
 ];
 
@@ -43,7 +43,7 @@ function truncate(s: string, n = 170) {
  * four edges ripple — the same smooth bump (no sharp cusps) as the site's Scallop
  * dividers. Built per-card from its w/h so the bumps stay round, and kept to a
  * single mask layer (a filled SVG path) so it renders reliably without depending
- * on `mask-composite`. Bumps dip inward, so the card never grows past wÃ—h.
+ * on `mask-composite`. Bumps dip inward, so the card never grows past w×h.
  */
 function wavyMask(w: number, h: number): string {
   const a = 10; // how far each perforation dips inward (px)
@@ -90,25 +90,46 @@ export default function Reviews({
 }) {
   // Live, synced Google reviews from the DB (>= 4★) replace the fallback when present.
   const [cards, setCards] = useState<Card[]>(FALLBACK);
+  const [liveStats, setLiveStats] = useState<{ count: number; avg: string } | null>(null);
 
   useEffect(() => {
     let alive = true;
-    fetch("/api/reviews")
-      .then((r) => r.json())
-      .then((d) => {
-        const list = Array.isArray(d?.reviews) ? d.reviews : [];
-        if (alive && list.length) {
-          setCards(
-            list.map((r: any) => ({
-              quote: truncate(String(r.review_text ?? "")),
-              author: `${r.name} · ${"★".repeat(Math.max(1, Math.min(5, Math.round(r.rating ?? 5))))}`,
-            })),
-          );
-        }
-      })
-      .catch(() => {});
+
+    function load() {
+      fetch("/api/reviews")
+        .then((r) => r.json())
+        .then((d) => {
+          if (!alive) return;
+          const list = Array.isArray(d?.reviews) ? d.reviews : [];
+          if (list.length) {
+            setCards(
+              list.map((r: any) => ({
+                quote: truncate(String(r.review_text ?? "")),
+                author: `${r.name} · ${"★".repeat(Math.max(1, Math.min(5, Math.round(r.rating ?? 5))))}`,
+              })),
+            );
+          }
+          if (d?.totalCount && d?.avgRating) {
+            setLiveStats({ count: d.totalCount as number, avg: d.avgRating as string });
+          }
+        })
+        .catch(() => {});
+    }
+
+    // Initial fetch
+    load();
+
+    // Re-fetch when tab regains focus — picks up daily cron syncs immediately
+    const onVisible = () => { if (document.visibilityState === "visible") load(); };
+    document.addEventListener("visibilitychange", onVisible);
+
+    // Background refresh every 10 minutes as a safety net
+    const timer = setInterval(load, 10 * 60 * 1000);
+
     return () => {
       alive = false;
+      document.removeEventListener("visibilitychange", onVisible);
+      clearInterval(timer);
     };
   }, []);
 
@@ -147,7 +168,7 @@ export default function Reviews({
           padding: "0 48px",
         }}
       >
-        {content.heading}
+        {liveStats ? `${liveStats.count}+ Happy Guests.` : content.heading}
       </Reveal>
       <Reveal
         as="p"
@@ -163,7 +184,9 @@ export default function Reviews({
           textTransform: "uppercase",
         }}
       >
-        {content.ratingBadge}
+        {liveStats
+          ? `Rated ${liveStats.avg} ★ on Google · ${liveStats.count}+ reviews`
+          : content.ratingBadge}
       </Reveal>
 
       {/* full-bleed marquee; pauses when you hover a card */}

@@ -217,11 +217,12 @@ export async function getMenu(): Promise<MenuCategory[]> {
           is_chef_special: Boolean(it.is_chef_special),
         };
       });
+      const catName = String(c.name ?? "");
       return {
         key: slug || String(c.id),
-        title: String(c.name ?? theme.chip),
-        chip: theme.chip,
-        badge: theme.badge,
+        title: catName || theme.chip,
+        chip: catName || theme.chip,
+        badge: catName || theme.badge,
         emoji: theme.emoji,
         bg: theme.bg,
         card: theme.card,

@@ -95,7 +95,7 @@ export default async function ExplorePage() {
               }}>
                 VEYCHO
               </TransitionLink>
-              <span style={{ color: MUTED, fontSize: 12 }}>”º</span>
+              <span style={{ color: MUTED, fontSize: 12 }}>›</span>
               <span style={{
                 fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700,
                 fontSize: 12, color: MUTED, letterSpacing: ".08em",
@@ -164,7 +164,6 @@ export default async function ExplorePage() {
               </TransitionLink>
               <ShareButton
                 title="Explore Wayanad — Veycho Resto-Cafe"
-                url="https://veycho-six.vercel.app/explore"
                 variant="pill"
               />
             </div>

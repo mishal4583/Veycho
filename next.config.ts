@@ -2,8 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    // Menu / gallery / offer images are served from Supabase Storage public URLs.
-    remotePatterns: [{ protocol: "https", hostname: "*.supabase.co" }],
+    // Supabase Storage (menu, gallery, destination photos) + Unsplash (defaults/demo).
+    remotePatterns: [
+      { protocol: "https", hostname: "*.supabase.co" },
+      { protocol: "https", hostname: "images.unsplash.com" },
+    ],
   },
 };
 

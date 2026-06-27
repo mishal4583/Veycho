@@ -220,14 +220,14 @@ export const DEFAULT_CONTENT: SiteContent = {
     ctaDesc: "36 dishes across starters, mains, desserts & drinks.",
   },
   reviews: {
-    heading: "Happy guests.",
-    ratingBadge: "Rated 4.1 ★ on Google · 200+ reviews",
+    heading: "107+ Happy Guests.",
+    ratingBadge: "Rated 4.1 ★ on Google · 107+ reviews",
   },
   visit: {
     heading: "An evening,\ncomposed\nfor you.",
     ctaParagraph:
       "Walk-ins are always welcome. Call or message us for directions, opening hours, or any questions.",
-    mapBadge: "📍 Kalpetta, Wayanad",
+    mapBadge: "📍 Kalpetta, Wayanad",
     address:
       "Veycho Restaurant & Cafe, Near MCF School Road, Gudalai, Mandayapuram, Kalpetta, Kerala 673121",
     phone: "+91 9292619419",
@@ -334,7 +334,7 @@ export const CATEGORY_THEME: Record<string, CategoryTheme> = {
   starters: { chip: "Starters", badge: "Starter", emoji: "🍟", bg: "#f6dd9b", card: "#f6dd9b", disc: "#ecca6f" },
   mains: { chip: "Mains", badge: "Main", emoji: "🍽️", bg: "#e9c7a6", card: "#e9c7a6", disc: "#dcb892" },
   burger: { chip: "Burger", badge: "Burger", emoji: "🍔", bg: "#ecc3ad", card: "#ecc3ad", disc: "#e0ad94" },
-  pasta: { chip: "Pasta", badge: "Pasta", emoji: "🍝", bg: "#f4a3c1", card: "#f3e7cf", disc: "#e6d6b5" },
+  pasta: { chip: "Pasta", badge: "Pasta", emoji: "🍝", bg: "#f4a3c1", card: "#f3e7cf", disc: "#e6d6b5" },
   sandwich: { chip: "Sandwich", badge: "Sandwich", emoji: "🥪", bg: "#8ecae6", card: "#b9d0c9", disc: "#a6c2b9" },
   drinks: { chip: "Drinks", badge: "Drink", emoji: "🍹", bg: "#edb63f", card: "#e7cfa0", disc: "#d8bd86" },
 };

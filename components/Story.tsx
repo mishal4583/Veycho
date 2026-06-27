@@ -30,6 +30,7 @@ export default function Story({
   const contentRef = useRef<HTMLDivElement>(null);
   const wordRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const ctaRef = useRef<HTMLAnchorElement>(null);
+  const hintRef = useRef<HTMLDivElement>(null);
   const [pinHeight, setPinHeight] = useState<number | undefined>(undefined);
 
   // Map vertical scroll progress through the tall pinned section to a moving
@@ -91,8 +92,10 @@ export default function Story({
         if (!el) continue;
         el.style.opacity = front >= i + 1 ? "1" : String(DIM);
       }
-      // "Read our story" stays visible the whole time the section is on screen
-      // (no longer gated behind the scroll-reveal finishing).
+      // Hide scroll hint once user has started scrolling through this section
+      if (hintRef.current) {
+        hintRef.current.style.opacity = scrollPast > 30 ? "0" : "1";
+      }
     };
 
     const onScroll = () => {
@@ -205,6 +208,47 @@ export default function Story({
             {content.ctaLabel}
           </a>
         </div>
+
+        {/* Scroll hint — fades out once the user starts scrolling */}
+        <div
+          ref={hintRef}
+          style={{
+            position: "absolute",
+            bottom: 36,
+            left: "50%",
+            transform: "translateX(-50%)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 6,
+            transition: "opacity .6s ease",
+            pointerEvents: "none",
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "var(--font-baloo), sans-serif",
+              fontWeight: 700,
+              fontSize: 9,
+              letterSpacing: ".22em",
+              color: "rgba(244,234,214,.45)",
+            }}
+          >
+            SCROLL
+          </span>
+          <div style={{ animation: "vc-hint-drop 1.1s ease-in-out infinite" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#edb63f" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.7 }}>
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </div>
+        </div>
+
+        <style>{`
+          @keyframes vc-hint-drop {
+            0%, 100% { transform: translateY(0); opacity: .7; }
+            50%       { transform: translateY(6px); opacity: 1; }
+          }
+        `}</style>
       </div>
     </section>
   );
