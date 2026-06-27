@@ -11,12 +11,11 @@ import {
   type MenuPageContent,
 } from "@/lib/content-defaults";
 
-const DARK    = "#071821";
-const SURFACE = "#0b2c39";
-const GOLD    = "#edb63f";
-const CREAM   = "#f4ead6";
-const MUTED   = "#8aa1ab";
-const RUST    = "#c5613a";
+const DARK = "#071821";
+const GOLD = "#edb63f";
+const CREAM = "#f4ead6";
+const MUTED = "#8aa1ab";
+const RUST  = "#c5613a";
 
 type Entry = MenuItem & { cat: MenuCategory };
 
@@ -26,210 +25,151 @@ function matches(entry: Entry, filter: string) {
   return entry.cat.key === filter;
 }
 
-/* ── veg / non-veg square indicator ─────────────────────────── */
-function VegDot({ veg }: { veg?: boolean }) {
-  if (veg === undefined) return null;
+function badgeFor(entry: Entry) {
+  if (entry.tag && TAG_META[entry.tag]) {
+    return { label: TAG_META[entry.tag].label, bg: TAG_META[entry.tag].color, color: "#fff" };
+  }
+  return { label: entry.cat.badge, bg: "#0b2c39", color: "#f4ead6" };
+}
+
+/* ── mobile list: small tag pill ────────────────────────────── */
+function TagPill({ tag }: { tag: string }) {
+  const t = TAG_META[tag];
+  if (!t) return null;
   return (
     <span style={{
-      display: "inline-flex", alignItems: "center", justifyContent: "center",
-      width: 16, height: 16, borderRadius: 3, flexShrink: 0,
-      border: `2px solid ${veg ? "#2f7d4f" : "#c0392b"}`,
+      background: t.color, color: "#fff",
+      fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700,
+      fontSize: 9, letterSpacing: ".08em", textTransform: "uppercase",
+      padding: "2px 7px", borderRadius: 100, lineHeight: 1.4, whiteSpace: "nowrap",
     }}>
-      <span style={{
-        width: 8, height: 8, borderRadius: "50%",
-        background: veg ? "#2f7d4f" : "#c0392b",
-      }} />
+      {t.label}
     </span>
   );
 }
 
-/* ── small badge pill ────────────────────────────────────────── */
-function Badge({ children, bg, color }: { children: React.ReactNode; bg: string; color: string }) {
-  return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", gap: 3,
-      background: bg, color,
-      fontFamily: "var(--font-baloo), sans-serif",
-      fontWeight: 700, fontSize: 9, letterSpacing: ".08em",
-      padding: "2px 8px", borderRadius: 100, whiteSpace: "nowrap",
-    }}>
-      {children}
-    </span>
-  );
-}
+/* ── desktop: circular dish image / emoji fallback ───────────── */
+const DISC_STRIPES =
+  "repeating-linear-gradient(135deg,rgba(6,20,27,.05) 0 11px,transparent 11px 22px)";
 
-/* ── image area with emoji fallback ─────────────────────────── */
-function CardImage({ src, emoji, disc, alt }: { src?: string; emoji: string; disc: string; alt: string }) {
+function DishDisc({ img, emoji, disc }: { img?: string; emoji: string; disc: string }) {
   const [broken, setBroken] = useState(false);
-  const hasImg = Boolean(src) && !broken;
   return (
     <div style={{
-      position: "relative", aspectRatio: "4/3", overflow: "hidden",
-      background: hasImg ? DARK : disc,
-      flexShrink: 0,
+      width: 185, height: 185, maxWidth: "62vw", borderRadius: "50%",
+      background: disc,
+      backgroundImage: (!img || broken) ? DISC_STRIPES : undefined,
+      overflow: "hidden", display: "flex", alignItems: "center",
+      justifyContent: "center", marginBottom: 16, flex: "none",
+      boxShadow: "0 8px 28px rgba(0,0,0,.12)",
     }}>
-      {hasImg ? (
+      {img && !broken ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={src} alt={alt} loading="lazy"
-          onError={() => setBroken(true)}
+        <img src={img} alt="" loading="lazy" onError={() => setBroken(true)}
           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block",
             transition: "transform .4s ease" }}
-          className="menu-card-img"
+          className="vc-disc-img"
         />
       ) : (
-        <div style={{
-          width: "100%", height: "100%",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: disc,
-          backgroundImage: "repeating-linear-gradient(135deg,rgba(6,20,27,.06) 0 10px,transparent 10px 20px)",
-        }}>
-          <span style={{ fontSize: 52, lineHeight: 1, filter: "drop-shadow(0 4px 12px rgba(0,0,0,.2))" }}>{emoji}</span>
-        </div>
-      )}
-      {/* dark gradient over image */}
-      {hasImg && (
-        <div aria-hidden style={{
-          position: "absolute", inset: 0,
-          background: "linear-gradient(180deg, rgba(7,24,33,.08) 0%, rgba(7,24,33,.55) 100%)",
-        }} />
+        <span style={{ fontSize: 64, lineHeight: 1 }}>{emoji}</span>
       )}
     </div>
   );
 }
 
-/* ── unified food card (desktop + mobile) ────────────────────── */
-function FoodCard({ entry }: { entry: Entry }) {
-  const [hovered, setHovered] = useState(false);
+/* ── desktop food card — oval pill, disc image ───────────────── */
+function FoodCard({ entry, index }: { entry: Entry; index: number }) {
+  const b  = badgeFor(entry);
+  const rot = index % 2 ? "1.2deg" : "-1.2deg";
   const spice = Math.min(entry.spice_level ?? 0, 4);
 
   return (
     <article
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      className="vc-card"
       style={{
+        "--rot": rot,
+        width: "100%", maxWidth: 320,
+        background: entry.cat.card,
+        borderRadius: 200,
+        padding: "28px 26px 26px",
         display: "flex", flexDirection: "column",
-        background: SURFACE,
-        borderRadius: 16, overflow: "hidden",
-        border: `1.5px solid ${hovered ? GOLD : "rgba(237,182,63,.14)"}`,
-        boxShadow: hovered
-          ? "0 12px 40px rgba(0,0,0,.45), 0 0 0 1px rgba(237,182,63,.25)"
-          : "0 2px 10px rgba(0,0,0,.25)",
-        transform: hovered ? "translateY(-5px)" : "translateY(0)",
-        transition: "transform .28s ease, box-shadow .28s ease, border-color .2s ease",
-      }}
+        alignItems: "center", textAlign: "center",
+        position: "relative",
+      } as CSSProperties}
     >
-      {/* top image */}
-      <CardImage src={entry.img} emoji={entry.cat.emoji} disc={entry.cat.disc} alt={entry.name} />
+      {/* category / tag badge — top-left */}
+      <div style={{
+        position: "absolute", top: 22, left: 22,
+        background: b.bg, color: b.color,
+        fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700,
+        fontSize: 11, padding: "5px 13px", borderRadius: 100, letterSpacing: ".04em",
+        boxShadow: "0 2px 8px rgba(0,0,0,.15)",
+      }}>
+        {b.label}
+      </div>
 
-      {/* card body */}
-      <div style={{ padding: "14px 16px 18px", display: "flex", flexDirection: "column", flex: 1 }}>
-        {/* category + veg row */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-          <span style={{
-            fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700,
-            fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase",
-            color: GOLD, opacity: 0.85,
-          }}>
-            {entry.cat.badge}
-          </span>
-          <VegDot veg={entry.is_veg} />
-        </div>
-
-        {/* name */}
-        <h3 style={{
-          fontFamily: "var(--font-baloo), sans-serif", fontWeight: 800,
-          fontSize: "clamp(15px, 1.8vw, 19px)", color: CREAM,
-          margin: "0 0 5px", lineHeight: 1.2,
-        }}>
-          {entry.name}
-        </h3>
-
-        {/* description */}
-        {entry.description && (
-          <p style={{
-            fontFamily: "var(--font-hanken), system-ui, sans-serif",
-            fontSize: 12, color: MUTED, lineHeight: 1.5,
-            margin: "0 0 10px", flex: 1,
-            display: "-webkit-box", WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical", overflow: "hidden",
-          }}>
-            {entry.description}
-          </p>
-        )}
-
-        {/* badges row */}
-        {(entry.is_popular || entry.is_chef_special || spice > 0) && (
-          <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 10 }}>
-            {entry.is_popular    && <Badge bg={DARK} color={GOLD}>🔥 Popular</Badge>}
-            {entry.is_chef_special && <Badge bg={RUST} color="#fff">★ Chef&apos;s</Badge>}
-            {spice > 0           && <Badge bg="rgba(192,57,43,.2)" color="#e74c3c">{"🌶".repeat(spice)}</Badge>}
-          </div>
-        )}
-
-        {/* price */}
+      {/* veg indicator — top-right */}
+      {entry.is_veg !== undefined && (
         <div style={{
-          fontFamily: "var(--font-anton), sans-serif",
-          fontSize: "clamp(20px, 2.2vw, 26px)", color: RUST,
-          marginTop: "auto", lineHeight: 1,
+          position: "absolute", top: 22, right: 22,
+          width: 22, height: 22, borderRadius: 4,
+          border: `2px solid ${entry.is_veg ? "#2f7d4f" : "#c0392b"}`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: "rgba(255,255,255,.8)",
         }}>
-          {entry.price}
+          <div style={{ width: 10, height: 10, borderRadius: "50%", background: entry.is_veg ? "#2f7d4f" : "#c0392b" }} />
         </div>
+      )}
+
+      {/* image disc */}
+      <div style={{ marginTop: 28 }}>
+        <DishDisc img={entry.img} emoji={entry.cat.emoji} disc={entry.cat.disc} />
+      </div>
+
+      {/* name */}
+      <h3 style={{
+        fontFamily: "var(--font-baloo), sans-serif", fontWeight: 800,
+        color: "#11262f", fontSize: 20, margin: "0 0 6px", lineHeight: 1.2,
+      }}>
+        {entry.name}
+      </h3>
+
+      {/* description */}
+      {entry.description && (
+        <p style={{
+          fontFamily: "var(--font-hanken), system-ui, sans-serif",
+          fontSize: 12, color: "rgba(17,38,47,.6)", lineHeight: 1.5,
+          margin: "0 0 10px", padding: "0 8px",
+          display: "-webkit-box", WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical", overflow: "hidden",
+        }}>
+          {entry.description}
+        </p>
+      )}
+
+      {/* meta badges */}
+      {(entry.is_popular || entry.is_chef_special || spice > 0) && (
+        <div style={{ display: "flex", gap: 5, justifyContent: "center", flexWrap: "wrap", marginBottom: 8 }}>
+          {entry.is_popular && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, background: "#0b2c39", color: GOLD, fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700, fontSize: 9, letterSpacing: ".08em", padding: "2px 8px", borderRadius: 100 }}>🔥 Popular</span>
+          )}
+          {entry.is_chef_special && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, background: RUST, color: "#fff", fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700, fontSize: 9, letterSpacing: ".08em", padding: "2px 8px", borderRadius: 100 }}>★ Chef&apos;s</span>
+          )}
+          {spice > 0 && (
+            <span style={{ fontSize: 12, letterSpacing: 1 }}>{"🌶".repeat(spice)}</span>
+          )}
+        </div>
+      )}
+
+      {/* price */}
+      <div style={{
+        fontFamily: "var(--font-anton), sans-serif",
+        fontSize: 30, color: RUST, marginTop: 4, lineHeight: 1,
+      }}>
+        {entry.price}
       </div>
     </article>
-  );
-}
-
-/* ── filter chips ────────────────────────────────────────────── */
-function FilterBar({
-  chips, filter, onChange, sticky,
-}: {
-  chips: { key: string; label: string }[];
-  filter: string;
-  onChange: (k: string) => void;
-  sticky?: boolean;
-}) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  return (
-    <div
-      ref={scrollRef}
-      style={{
-        display: "flex", gap: 8, flexWrap: sticky ? "wrap" : "nowrap",
-        overflowX: sticky ? undefined : "auto",
-        justifyContent: sticky ? "center" : undefined,
-        padding: sticky ? "22px 0 36px" : "16px 20px",
-        position: sticky ? "sticky" : undefined,
-        top: sticky ? 34 : undefined,
-        background: sticky ? DARK : undefined,
-        zIndex: sticky ? 20 : undefined,
-        scrollbarWidth: "none",
-        WebkitOverflowScrolling: "touch" as never,
-      }}
-    >
-      {chips.map((chip) => {
-        const on = filter === chip.key;
-        return (
-          <button
-            key={chip.key}
-            type="button"
-            onClick={() => onChange(chip.key)}
-            style={{
-              cursor: "pointer", flexShrink: 0,
-              fontFamily: "var(--font-baloo), sans-serif",
-              fontWeight: on ? 700 : 600,
-              fontSize: 13, letterSpacing: ".02em",
-              padding: "9px 20px", borderRadius: 100,
-              background: on ? GOLD : "rgba(244,234,214,.07)",
-              color: on ? DARK : CREAM,
-              border: `1.5px solid ${on ? GOLD : "rgba(244,234,214,.18)"}`,
-              transition: "all .18s ease",
-            }}
-          >
-            {chip.label}
-          </button>
-        );
-      })}
-    </div>
   );
 }
 
@@ -246,7 +186,7 @@ export default function MenuExplorer({
   const chips = [
     { key: "all", label: "All" },
     ...categories.map((c) => ({ key: c.key, label: c.chip })),
-    { key: "veg", label: "🌿 Veg" },
+    { key: "veg", label: "Veg" },
   ];
 
   const allItems: Entry[] = categories.flatMap((cat) =>
@@ -257,55 +197,60 @@ export default function MenuExplorer({
   return (
     <>
       <style>{`
-        .menu-card-img { transition: transform .4s ease; }
-        article:hover .menu-card-img { transform: scale(1.06); }
-        .menu-chips-mobile::-webkit-scrollbar { display: none; }
-
-        /* desktop grid */
-        @media (min-width: 760px) {
-          .menu-grid { grid-template-columns: repeat(3, 1fr); }
-        }
-        @media (min-width: 1100px) {
-          .menu-grid { grid-template-columns: repeat(4, 1fr); }
-        }
-        /* mobile cards */
-        @media (max-width: 759px) {
-          .menu-grid-mobile { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 400px) {
-          .menu-grid-mobile { grid-template-columns: 1fr !important; }
-        }
+        .vc-disc-img { transition: transform .4s ease; }
+        .vc-card:hover .vc-disc-img { transform: scale(1.07); }
+        .menu-chips-scroll::-webkit-scrollbar { display: none; }
+        .menu-chips-scroll { scrollbar-width: none; }
       `}</style>
 
-      {/* ══════════════ DESKTOP ══════════════ */}
+      {/* ══════════ DESKTOP: oval-pill cards on dark ══════════ */}
       <section
         className="vcm-desktop"
         style={{ position: "relative", background: DARK, padding: "0 40px 130px", marginBottom: -1 }}
       >
         <div style={{ maxWidth: 1240, margin: "0 auto" }}>
-          {/* sticky filter */}
-          <FilterBar chips={chips} filter={filter} onChange={setFilter} sticky />
-
-          {/* count pill */}
+          {/* sticky filter chips */}
           <div style={{
-            textAlign: "right", marginBottom: 20,
-            fontFamily: "var(--font-baloo), sans-serif", fontWeight: 600,
-            fontSize: 12, color: MUTED, letterSpacing: ".06em",
+            display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center",
+            padding: "22px 0 46px",
+            position: "sticky", top: 34, background: DARK, zIndex: 20,
           }}>
-            {visible.length} {visible.length === 1 ? "item" : "items"}
+            {chips.map((chip) => {
+              const on = filter === chip.key;
+              return (
+                <button key={chip.key} type="button" onClick={() => setFilter(chip.key)}
+                  style={{
+                    cursor: "pointer",
+                    fontFamily: "var(--font-baloo), sans-serif", fontWeight: on ? 700 : 600,
+                    fontSize: 14, letterSpacing: ".02em",
+                    padding: "11px 22px", borderRadius: 100,
+                    background: on ? GOLD : "transparent",
+                    color: on ? DARK : "#d9cdb5",
+                    border: `2px solid ${on ? GOLD : "rgba(244,234,214,.2)"}`,
+                    transition: "all .2s",
+                  }}
+                >
+                  {chip.label}
+                </button>
+              );
+            })}
           </div>
 
           {/* card grid */}
-          <div className="menu-grid" style={{ display: "grid", gap: 20 }}>
-            {visible.map((entry) => (
-              <FoodCard key={`${entry.cat.key}-${entry.name}`} entry={entry} />
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+            gap: 26, justifyItems: "center",
+          }}>
+            {visible.map((entry, i) => (
+              <FoodCard key={`${entry.cat.key}-${entry.name}`} entry={entry} index={i} />
             ))}
           </div>
 
           {visible.length === 0 && (
             <div style={{ textAlign: "center", padding: "80px 0", color: MUTED }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>🍽️</div>
-              <p style={{ fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700 }}>
+              <p style={{ fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700, color: CREAM }}>
                 No items in this category yet.
               </p>
             </div>
@@ -313,57 +258,122 @@ export default function MenuExplorer({
         </div>
       </section>
 
-      {/* ══════════════ MOBILE ══════════════ */}
+      {/* ══════════ MOBILE: text list by category (cream) ══════════ */}
       <section
         className="vcm-mobile"
-        style={{ position: "relative", background: DARK, marginBottom: -1, paddingBottom: "clamp(100px, 14vh, 160px)" }}
+        style={{
+          position: "relative", background: "#f1e6d0",
+          marginBottom: -1,
+          padding: "32px 0 clamp(120px, 16vh, 200px)",
+        }}
       >
-        {/* heading */}
-        <div style={{ textAlign: "center", padding: "32px 20px 0" }}>
-          <p style={{
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 20px" }}>
+          <div style={{
+            textAlign: "center", color: RUST,
             fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700,
-            color: GOLD, fontSize: 12, letterSpacing: ".2em",
-            textTransform: "uppercase", marginBottom: 6,
+            fontSize: 13, letterSpacing: ".2em", marginBottom: 8,
           }}>
             {content.mobileLabel}
-          </p>
+          </div>
           <h2 style={{
-            fontFamily: "var(--font-anton), sans-serif", color: CREAM,
-            fontSize: "clamp(30px, 9vw, 46px)", lineHeight: 0.95,
-            margin: "0 0 4px", textTransform: "uppercase",
+            textAlign: "center",
+            fontFamily: "var(--font-anton), sans-serif", color: "#11262f",
+            fontSize: "clamp(34px,9vw,52px)", lineHeight: 0.92,
+            margin: "0 0 38px", textTransform: "uppercase",
           }}>
             {content.mobileHeading}
           </h2>
-        </div>
 
-        {/* scrollable filter chips */}
-        <div className="menu-chips-mobile">
-          <FilterBar chips={chips} filter={filter} onChange={setFilter} />
-        </div>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(330px,100%), 1fr))",
+            gap: 22, alignItems: "start",
+          }}>
+            {categories.map((cat, i) => (
+              <Reveal as="article" key={cat.key} y={36} delay={(i % 2) * 80}
+                style={{ background: cat.bg, borderRadius: 30, padding: "30px 26px 26px" }}
+              >
+                <header style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 30, lineHeight: 1 }}>{cat.emoji}</span>
+                  <h3 style={{
+                    fontFamily: "var(--font-anton), sans-serif", color: "#11262f",
+                    fontSize: 26, margin: 0, textTransform: "uppercase", lineHeight: 1,
+                  }}>
+                    {cat.title}
+                  </h3>
+                  {cat.note && (
+                    <span style={{
+                      marginLeft: "auto",
+                      fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700,
+                      fontSize: 11, letterSpacing: ".06em", textTransform: "uppercase",
+                      color: "rgba(17,38,47,.6)",
+                    }}>
+                      {cat.note}
+                    </span>
+                  )}
+                </header>
 
-        {/* 2-col card grid */}
-        <div className="menu-grid-mobile" style={{ display: "grid", gap: 12, padding: "0 14px" }}>
-          {visible.map((entry) => (
-            <FoodCard key={`${entry.cat.key}-${entry.name}`} entry={entry} />
-          ))}
-        </div>
-
-        {visible.length === 0 && (
-          <div style={{ textAlign: "center", padding: "60px 20px", color: MUTED }}>
-            <div style={{ fontSize: 36, marginBottom: 8 }}>🍽️</div>
-            <p style={{ fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700, color: CREAM }}>
-              No items here yet.
-            </p>
+                <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                  {cat.items.map((it) => (
+                    <li key={it.name} style={{
+                      display: "flex", alignItems: "flex-start", justifyContent: "space-between",
+                      gap: 12, padding: "9px 0",
+                      borderTop: "1px dashed rgba(17,38,47,.2)",
+                    }}>
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{
+                          display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6,
+                          fontFamily: "var(--font-baloo), sans-serif", fontWeight: 600,
+                          fontSize: 15, lineHeight: 1.3, color: "#11262f",
+                        }}>
+                          {it.is_veg !== undefined && (
+                            <span style={{
+                              display: "inline-flex", alignItems: "center", justifyContent: "center",
+                              width: 13, height: 13, borderRadius: 2, flexShrink: 0,
+                              border: `2px solid ${it.is_veg ? "#2f7d4f" : "#c0392b"}`,
+                            }}>
+                              <span style={{ width: 6, height: 6, borderRadius: "50%", background: it.is_veg ? "#2f7d4f" : "#c0392b" }} />
+                            </span>
+                          )}
+                          {it.name}
+                          {it.tag && <TagPill tag={it.tag} />}
+                          {it.is_popular && <span style={{ fontSize: 10 }}>🔥</span>}
+                          {it.is_chef_special && <span style={{ fontSize: 9, fontWeight: 700, color: RUST }}>★</span>}
+                          {(it.spice_level ?? 0) > 0 && (
+                            <span style={{ fontSize: 10 }}>{"🌶".repeat(Math.min(it.spice_level ?? 0, 4))}</span>
+                          )}
+                        </span>
+                        {it.description && (
+                          <span style={{
+                            display: "block",
+                            fontFamily: "var(--font-hanken), system-ui, sans-serif",
+                            fontSize: 12, color: "rgba(17,38,47,.55)", lineHeight: 1.45, marginTop: 2,
+                          }}>
+                            {it.description}
+                          </span>
+                        )}
+                      </span>
+                      <span style={{
+                        fontFamily: "var(--font-anton), sans-serif", fontSize: 17,
+                        color: RUST, whiteSpace: "nowrap", alignSelf: "flex-start", paddingTop: 2,
+                      }}>
+                        {it.price}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </Reveal>
+            ))}
           </div>
-        )}
 
-        <p style={{
-          textAlign: "center", marginTop: 40, padding: "0 20px",
-          color: MUTED, fontFamily: "var(--font-baloo), sans-serif",
-          fontWeight: 600, fontSize: 13, letterSpacing: ".04em",
-        }}>
-          {content.thankyou}
-        </p>
+          <p style={{
+            textAlign: "center", marginTop: 46,
+            color: "#7a6b52", fontFamily: "var(--font-baloo), sans-serif",
+            fontWeight: 600, fontSize: 14, letterSpacing: ".04em",
+          }}>
+            {content.thankyou}
+          </p>
+        </div>
       </section>
     </>
   );
