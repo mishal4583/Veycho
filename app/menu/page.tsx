@@ -141,13 +141,8 @@ export default async function MenuPage() {
             {mp.heroTagline}
           </Reveal>
 
-          {/* transition into the body — cream on mobile (current), dark on desktop */}
-          <div className="vcm-mobile">
-            <Scallop edge="bottom" color="#f1e6d0" />
-          </div>
-          <div className="vcm-desktop">
-            <Scallop edge="bottom" color="#071821" />
-          </div>
+          {/* both mobile and desktop flow into the dark menu body */}
+          <Scallop edge="bottom" color="#071821" />
         </section>
 
         {/* ---- the menu body (desktop card grid · mobile list) ---- */}
@@ -162,11 +157,7 @@ export default async function MenuPage() {
             paddingBottom: 46,
           }}
         >
-          {/* scallop into the footer — a real cream→dark transition on mobile;
-              on desktop the grid is already dark, so it flows in seamlessly */}
-          <div className="vcm-mobile">
-            <Scallop edge="top" color="#f1e6d0" />
-          </div>
+          {/* menu body and footer are both dark — no scallop needed */}
 
           <div style={{ padding: "150px 0 40px" }}>
             {/* row 1 — huge, scrolls left */}
