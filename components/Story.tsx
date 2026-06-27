@@ -6,7 +6,7 @@ import { DEFAULT_CONTENT, type StoryContent } from "@/lib/content-defaults";
 
 // How much scroll (in viewport heights) reveals the whole paragraph. Once it's
 // consumed the sticky pin releases and the next slide scrolls in.
-const READ_VH = 1.5;
+const READ_VH = 1.1;
 // Colour of read text, and how faint unread text sits against the background.
 const READ = "#f4ead6";
 const DIM = 0.12;
@@ -94,7 +94,7 @@ export default function Story({
       }
       // Hide scroll hint once user has started scrolling through this section
       if (hintRef.current) {
-        hintRef.current.style.opacity = scrollPast > 120 ? "0" : "1";
+        hintRef.current.style.opacity = progress >= 1 ? "0" : "1";
       }
     };
 
