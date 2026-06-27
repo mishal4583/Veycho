@@ -6,22 +6,33 @@
 // so this can ship today and start flowing the moment the key + place id are added.
 import { fetchGoogleReviews, reviewsConfigured } from "@/lib/google-reviews";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MIN_RATING = 4;
 
-// Vercel Cron sends `Authorization: Bearer <CRON_SECRET>` when CRON_SECRET is set.
-// If it isn't set, the endpoint is open (handy for first deploy / manual runs).
-function authorized(req: Request): boolean {
+// Allow the request if:
+//  a) CRON_SECRET matches the Authorization header (Vercel Cron / curl), OR
+//  b) the caller is an authenticated staff user (admin dashboard "Sync now" button).
+async function authorized(req: Request): Promise<boolean> {
   const secret = process.env.CRON_SECRET;
   if (!secret) return true;
-  return req.headers.get("authorization") === `Bearer ${secret}`;
+  if (req.headers.get("authorization") === `Bearer ${secret}`) return true;
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+    const { data } = await supabase.rpc("is_staff", { _user_id: user.id });
+    return Boolean(data);
+  } catch {
+    return false;
+  }
 }
 
 async function handle(req: Request) {
-  if (!authorized(req)) {
+  if (!await authorized(req)) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
   if (!reviewsConfigured()) {
