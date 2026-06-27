@@ -244,12 +244,18 @@ html.lenis body {
 
 /* ---- gallery wall tiles: pinned-photo tilt that straightens + lifts on hover ---- */
 .vc-gal-tile {
-  transform: rotate(var(--rot, 0deg));
+  transform: rotate(var(--rot, 0deg)) translateZ(0);
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.5s ease;
   box-shadow: 0 12px 30px rgba(6, 20, 27, 0.12);
+  /* Pre-promote each tile to its own compositor layer so hover transitions and
+     cursor movement never trigger a main-thread repaint (fixes jitter on Windows
+     laptops using fractional display scaling such as 125%). */
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 .vc-gal-tile:hover {
-  transform: translateY(-10px) scale(1.02) rotate(0deg);
+  transform: translateY(-10px) scale(1.02) rotate(0deg) translateZ(0);
   box-shadow: 0 30px 56px rgba(6, 20, 27, 0.28);
 }
 

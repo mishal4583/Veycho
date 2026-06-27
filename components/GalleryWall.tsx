@@ -108,7 +108,7 @@ export default function GalleryWall({ items }: { items: GalleryImage[] }) {
 
       {/* CSS-columns masonry → varied photo heights collage, fully fluid with no
           media queries (column-width auto-fits the viewport). */}
-      <div style={{ columnWidth: 270, columnGap: 18 }}>
+      <div style={{ columnWidth: 270, columnGap: 18, transform: "translateZ(0)", isolation: "isolate" }}>
         {filtered.map((it, i) => {
           const mat = MATS[i % MATS.length];
           const rot = ROTS[i % ROTS.length];
@@ -118,7 +118,7 @@ export default function GalleryWall({ items }: { items: GalleryImage[] }) {
               key={it.id}
               y={36}
               delay={(i % 4) * 70}
-              style={{ breakInside: "avoid", marginBottom: 18 }}
+              style={{ breakInside: "avoid", marginBottom: 18, willChange: "transform, opacity" }}
             >
               <button
                 className="vc-gal-tile"
@@ -281,7 +281,7 @@ function Lightbox({
           zIndex: 6,
         }}
       >
-        âœ•
+        ✕
       </button>
 
       {/* Arrows are pinned to the viewport edges (not in the image's flex row),
@@ -303,7 +303,7 @@ function Lightbox({
             zIndex: 5,
           }}
         >
-          ”¹
+          ‹
         </button>
       )}
       {total > 1 && (
@@ -322,7 +322,7 @@ function Lightbox({
             zIndex: 5,
           }}
         >
-          ”º
+          ›
         </button>
       )}
 
@@ -393,9 +393,9 @@ function Lightbox({
 /** Shown before any photos are uploaded — keeps the page on-brand, never blank. */
 function EmptyWall() {
   const tiles = [
-    { bg: "#edb63f", emoji: "â˜•", rot: -3 },
-    { bg: "#0b2c39", emoji: "🍝”", rot: 2 },
-    { bg: "#c9d6c3", emoji: "🍝Œ¿", rot: -2 },
+    { bg: "#edb63f", emoji: "☕", rot: -3 },
+    { bg: "#0b2c39", emoji: "🍜", rot: 2 },
+    { bg: "#c9d6c3", emoji: "🍛", rot: -2 },
     { bg: "#e9c7a6", emoji: "✦", rot: 3 },
   ];
   return (
