@@ -9,6 +9,7 @@ import ExploreGrid from "@/components/ExploreGrid";
 import Reveal from "@/components/Reveal";
 import Scallop from "@/components/Scallop";
 import TransitionLink from "@/components/TransitionLink";
+import ShareButton from "@/components/ShareButton";
 import { getSiteContent } from "@/lib/content";
 import { getDestinations, getDestinationCategories } from "@/lib/explore";
 
@@ -161,6 +162,11 @@ export default async function ExplorePage() {
               >
                 View Menu
               </TransitionLink>
+              <ShareButton
+                title="Explore Wayanad — Veycho Resto-Cafe"
+                url="https://veycho-six.vercel.app/explore"
+                variant="pill"
+              />
             </div>
           </Reveal>
 

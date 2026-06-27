@@ -27,6 +27,42 @@ const input =
   "w-full bg-surface border border-border/60 px-3 py-2 text-sm rounded";
 const labelCls = "block text-xs text-muted-foreground mb-1";
 
+function FileButton({
+  accept,
+  onChange,
+  label = "Choose file",
+}: {
+  accept?: string;
+  onChange: (f: File) => void;
+  label?: string;
+}) {
+  const [name, setName] = useState<string | null>(null);
+  return (
+    <label className="inline-flex items-center gap-2 cursor-pointer">
+      <span className="inline-flex items-center gap-1.5 bg-surface border border-border/60 hover:border-gold/60 hover:text-gold px-3 py-1.5 text-xs rounded transition-colors">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        {label}
+      </span>
+      <span className="text-xs text-muted-foreground truncate max-w-[180px]">
+        {name ?? "No file chosen"}
+      </span>
+      <input
+        type="file"
+        accept={accept}
+        className="sr-only"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (!f) return;
+          setName(f.name);
+          onChange(f);
+        }}
+      />
+    </label>
+  );
+}
+
 function Field({
   label,
   value,
@@ -261,13 +297,10 @@ export default function SiteContentAdmin() {
             {form.hero.videoUrl && (
               <p className="mb-1 text-xs text-gold break-all">{form.hero.videoUrl}</p>
             )}
-            <input
-              type="file"
+            <FileButton
               accept="video/*"
-              className="text-sm"
-              onChange={async (e) => {
-                const f = e.target.files?.[0];
-                if (!f) return;
+              label="Choose video"
+              onChange={async (f) => {
                 const url = await uploadTo(f);
                 if (url) patch("hero", { videoUrl: url });
               }}
@@ -279,13 +312,10 @@ export default function SiteContentAdmin() {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={form.hero.posterUrl} alt="" className="h-16 mb-2 object-contain" />
             )}
-            <input
-              type="file"
+            <FileButton
               accept="image/*"
-              className="text-sm"
-              onChange={async (e) => {
-                const f = e.target.files?.[0];
-                if (!f) return;
+              label="Choose image"
+              onChange={async (f) => {
                 const url = await uploadTo(f);
                 if (url) patch("hero", { posterUrl: url });
               }}
@@ -447,13 +477,10 @@ export default function SiteContentAdmin() {
                 className="h-28 w-full object-cover rounded mb-2"
               />
             )}
-            <input
-              type="file"
+            <FileButton
               accept="image/*"
-              className="text-sm"
-              onChange={async (e) => {
-                const f = e.target.files?.[0];
-                if (!f) return;
+              label="Choose image"
+              onChange={async (f) => {
                 const url = await uploadTo(f);
                 if (url) patch("explorePage", { heroImageUrl: url });
               }}

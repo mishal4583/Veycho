@@ -31,6 +31,6 @@ export function waveBg(color: string, dir: "up" | "down" = "up"): string {
 // settles last. `inDelay` staggers the rise (cover), `outDelay` the recede
 // (reveal), so the layers fan apart instead of moving as one slab.
 export const WAVES = [
-  { color: "#edb63f", inDelay: 0, outDelay: 0.12 },
-  { color: "#0b2c39", inDelay: 0.1, outDelay: 0.05 },
+  { color: "#edb63f", inDelay: 0,    outDelay: 0.07 },
+  { color: "#0b2c39", inDelay: 0.06, outDelay: 0.03 },
 ] as const;

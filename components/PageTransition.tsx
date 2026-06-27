@@ -62,9 +62,9 @@ export function usePageTransition(): TransitionApi {
 // reveal→ the second half only (covered → above), for the snap hand-off
 type Phase = "idle" | "sweep" | "snap" | "reveal";
 
-const SWEEP_MS = 900; // full single wipe (below → above)
-const REVEAL_MS = 520; // reveal-only half (covered → above), for the hand-off
-const COVER_AT = SWEEP_MS / 2; // mid-sweep: fully covered → swap the page here
+const SWEEP_MS = 520; // full single wipe (below → above)
+const REVEAL_MS = 340; // reveal-only half (covered → above), for the hand-off
+const COVER_AT = SWEEP_MS * 0.45; // slightly before mid-sweep: fire route push just as screen is covered
 const EASE = "cubic-bezier(.76,0,.24,1)";
 
 function prefersReducedMotion(): boolean {

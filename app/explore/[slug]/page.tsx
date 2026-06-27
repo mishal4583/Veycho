@@ -13,6 +13,7 @@ import { getSiteContent } from "@/lib/content";
 import { getDestinationBySlug, getNearbyDestinations, getVeychoFoodPicks } from "@/lib/explore";
 import DestinationGalleryLightbox from "@/components/DestinationGalleryLightbox";
 import DestinationReviews from "@/components/DestinationReviews";
+import ShareButton from "@/components/ShareButton";
 
 export const dynamic = "force-dynamic";
 
@@ -188,6 +189,11 @@ export default async function DestinationPage({
             >
               HOME
             </TransitionLink>
+          </div>
+
+          {/* share button — top right */}
+          <div style={{ position: "absolute", top: "clamp(60px,8vh,96px)", right: "clamp(20px,5vw,38px)", zIndex: 2 }}>
+            <ShareButton title={`${dest.title} — Explore Wayanad · Veycho`} variant="icon" />
           </div>
 
           {/* category eyebrow */}
