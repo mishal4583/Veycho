@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { waveBg, WAVE_TILE } from "@/lib/wave";
 import Reveal from "./Reveal";
 import {
@@ -64,11 +64,11 @@ function TagPill({ tag }: { tag: string }) {
 const DISC_STRIPES =
   "repeating-linear-gradient(135deg,rgba(6,20,27,.05) 0 11px,transparent 11px 22px)";
 
-function DishDisc({ img, emoji, disc }: { img?: string; emoji: string; disc: string }) {
+function DishDisc({ img, emoji, disc, size = 185 }: { img?: string; emoji: string; disc: string; size?: number }) {
   const [broken, setBroken] = useState(false);
   return (
     <div style={{
-      width: 185, height: 185, maxWidth: "62vw", borderRadius: "50%",
+      width: size, height: size, maxWidth: "62vw", borderRadius: "50%",
       backgroundColor: disc,
       backgroundImage: (!img || broken) ? DISC_STRIPES : "none",
       overflow: "hidden", display: "flex", alignItems: "center",
@@ -78,12 +78,10 @@ function DishDisc({ img, emoji, disc }: { img?: string; emoji: string; disc: str
       {img && !broken ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={img} alt="" loading="lazy" onError={() => setBroken(true)}
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block",
-            transition: "transform .4s ease" }}
-          className="vc-disc-img"
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
         />
       ) : (
-        <span style={{ fontSize: 64, lineHeight: 1 }}>{emoji}</span>
+        <span style={{ fontSize: size * 0.35, lineHeight: 1 }}>{emoji}</span>
       )}
     </div>
   );
@@ -186,6 +184,166 @@ function FoodCard({ entry, index }: { entry: Entry; index: number }) {
   );
 }
 
+/* ── mobile item popup / bottom sheet ────────────────────────── */
+function ItemPopup({ entry, index, onClose }: { entry: Entry; index: number; onClose: () => void }) {
+  const palette = CARD_PALETTE[index % CARD_PALETTE.length];
+  const b = badgeFor(entry);
+  const spice = Math.min(entry.spice_level ?? 0, 4);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    const lenis = (window as unknown as { __lenis?: { stop?: () => void; start?: () => void } }).__lenis;
+    lenis?.stop?.();
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      lenis?.start?.();
+      document.documentElement.style.overflow = "";
+    };
+  }, [onClose]);
+
+  const metaBadge: CSSProperties = {
+    display: "inline-flex", alignItems: "center", gap: 4,
+    fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700,
+    fontSize: 11, letterSpacing: ".06em", padding: "4px 12px", borderRadius: 100,
+  };
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 20000,
+        background: "rgba(7,24,33,.72)",
+        backdropFilter: "blur(5px)",
+        WebkitBackdropFilter: "blur(5px)",
+        display: "flex", alignItems: "flex-end",
+        animation: "vcm-overlay-in .22s ease both",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%",
+          maxHeight: "88dvh",
+          overflowY: "auto",
+          overscrollBehavior: "contain",
+          background: palette.card,
+          borderRadius: "26px 26px 0 0",
+          paddingBottom: "env(safe-area-inset-bottom, 24px)",
+          animation: "vcm-sheet-up .38s cubic-bezier(.16,1,.3,1) both",
+          position: "relative",
+        }}
+      >
+        {/* drag handle pill */}
+        <div style={{
+          width: 40, height: 4, borderRadius: 2,
+          background: "rgba(17,38,47,.22)",
+          margin: "14px auto 0",
+        }} />
+
+        {/* close button */}
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          style={{
+            position: "absolute", top: 14, right: 16,
+            width: 34, height: 34, borderRadius: "50%",
+            background: "rgba(17,38,47,.14)", border: "none",
+            cursor: "pointer", fontSize: 16, color: "#11262f",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            lineHeight: 1,
+          }}
+        >
+          ✕
+        </button>
+
+        {/* card content */}
+        <div style={{ padding: "18px 28px 36px", textAlign: "center" }}>
+          {/* category / tag badge */}
+          <div style={{
+            display: "inline-block",
+            background: b.bg, color: b.color,
+            fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700,
+            fontSize: 11, padding: "5px 14px", borderRadius: 100, letterSpacing: ".04em",
+            boxShadow: "0 2px 8px rgba(0,0,0,.13)", marginBottom: 22,
+          }}>
+            {b.label}
+          </div>
+
+          {/* dish image disc */}
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <DishDisc img={entry.img} emoji={entry.cat.emoji} disc={palette.disc} size={200} />
+          </div>
+
+          {/* name + veg indicator */}
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            gap: 8, margin: "4px 0 10px",
+          }}>
+            {entry.is_veg !== undefined && (
+              <div style={{
+                width: 20, height: 20, borderRadius: 4, flexShrink: 0,
+                border: `2.5px solid ${entry.is_veg ? "#2f7d4f" : "#c0392b"}`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: "rgba(255,255,255,.85)",
+              }}>
+                <div style={{ width: 9, height: 9, borderRadius: "50%", background: entry.is_veg ? "#2f7d4f" : "#c0392b" }} />
+              </div>
+            )}
+            <h2 style={{
+              fontFamily: "var(--font-baloo), sans-serif", fontWeight: 800,
+              fontSize: 26, color: "#11262f", margin: 0, lineHeight: 1.15,
+            }}>
+              {entry.name}
+            </h2>
+          </div>
+
+          {/* full description (no clamp) */}
+          {entry.description && (
+            <p style={{
+              fontFamily: "var(--font-hanken), system-ui, sans-serif",
+              fontSize: 14, color: "rgba(17,38,47,.58)", lineHeight: 1.6,
+              margin: "0 0 18px", padding: "0 4px",
+            }}>
+              {entry.description}
+            </p>
+          )}
+
+          {/* meta badges row */}
+          {(entry.is_popular || entry.is_chef_special || spice > 0) && (
+            <div style={{ display: "flex", gap: 7, justifyContent: "center", flexWrap: "wrap", marginBottom: 18 }}>
+              {entry.is_popular && (
+                <span style={{ ...metaBadge, background: "#0b2c39", color: GOLD }}>
+                  🔥 Popular
+                </span>
+              )}
+              {entry.is_chef_special && (
+                <span style={{ ...metaBadge, background: RUST, color: "#fff" }}>
+                  ★ Chef&apos;s Special
+                </span>
+              )}
+              {spice > 0 && (
+                <span style={{ fontSize: 18, letterSpacing: 2 }}>
+                  {"🌶".repeat(spice)}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* price */}
+          <div style={{
+            fontFamily: "var(--font-anton), sans-serif",
+            fontSize: 42, color: RUST, lineHeight: 1,
+          }}>
+            {entry.price}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── main export ─────────────────────────────────────────────── */
 export default function MenuExplorer({
   categories = MENU_DEFAULT,
@@ -195,6 +353,7 @@ export default function MenuExplorer({
   content?: MenuPageContent;
 }) {
   const [filter, setFilter] = useState("all");
+  const [selectedItem, setSelectedItem] = useState<{ entry: Entry; index: number } | null>(null);
 
   const chips = [
     { key: "all", label: "All" },
@@ -206,6 +365,14 @@ export default function MenuExplorer({
     cat.items.map((it) => ({ ...it, cat }))
   );
   const visible = allItems.filter((e) => matches(e, filter));
+
+  // Compute global index for each item in each category (matches allItems order)
+  const categoryOffsets: number[] = [];
+  let running = 0;
+  for (const cat of categories) {
+    categoryOffsets.push(running);
+    running += cat.items.length;
+  }
 
   return (
     <>
@@ -229,11 +396,25 @@ export default function MenuExplorer({
           box-shadow: 0 4px 18px rgba(237,182,63,.38);
         }
 
-@keyframes vc-cards-in {
+        @keyframes vc-cards-in {
           from { opacity: 0; transform: translateY(18px); }
           to   { opacity: 1; transform: translateY(0); }
         }
         .vc-cards-grid { animation: vc-cards-in .28s ease-out; }
+
+        /* mobile item popup animations */
+        @keyframes vcm-overlay-in {
+          from { opacity: 0 }
+          to   { opacity: 1 }
+        }
+        @keyframes vcm-sheet-up {
+          from { transform: translateY(100%) }
+          to   { transform: translateY(0) }
+        }
+
+        /* touch feedback on mobile list rows */
+        .vcm-list-row { transition: background .15s ease; }
+        .vcm-list-row:active { background: rgba(17,38,47,.08) !important; }
       `}</style>
 
       {/* ══════════ DESKTOP: oval-pill cards on cream ══════════ */}
@@ -339,8 +520,8 @@ export default function MenuExplorer({
             gridTemplateColumns: "repeat(auto-fit, minmax(min(330px,100%), 1fr))",
             gap: 22, alignItems: "start",
           }}>
-            {categories.map((cat, i) => (
-              <Reveal as="article" key={cat.key} y={36} delay={(i % 2) * 80}
+            {categories.map((cat, catIdx) => (
+              <Reveal as="article" key={cat.key} y={36} delay={(catIdx % 2) * 80}
                 style={{ background: cat.bg, borderRadius: 30, padding: "30px 26px 26px" }}
               >
                 <header style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
@@ -364,53 +545,73 @@ export default function MenuExplorer({
                 </header>
 
                 <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-                  {cat.items.map((it) => (
-                    <li key={it.name} style={{
-                      display: "flex", alignItems: "flex-start", justifyContent: "space-between",
-                      gap: 12, padding: "9px 0",
-                      borderTop: "1px dashed rgba(17,38,47,.2)",
-                    }}>
-                      <span style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{
-                          display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6,
-                          fontFamily: "var(--font-baloo), sans-serif", fontWeight: 600,
-                          fontSize: 15, lineHeight: 1.3, color: "#11262f",
-                        }}>
-                          {it.is_veg !== undefined && (
+                  {cat.items.map((it, itemIdx) => {
+                    const globalIndex = categoryOffsets[catIdx] + itemIdx;
+                    const entry: Entry = { ...it, cat };
+                    return (
+                      <li
+                        key={it.name}
+                        className="vcm-list-row"
+                        onClick={() => setSelectedItem({ entry, index: globalIndex })}
+                        style={{
+                          display: "flex", alignItems: "flex-start",
+                          justifyContent: "space-between",
+                          gap: 12, padding: "9px 6px",
+                          borderTop: "1px dashed rgba(17,38,47,.2)",
+                          cursor: "pointer",
+                          borderRadius: 10,
+                          margin: "0 -6px",
+                        }}
+                      >
+                        <span style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{
+                            display: "flex", alignItems: "center", flexWrap: "wrap", gap: 6,
+                            fontFamily: "var(--font-baloo), sans-serif", fontWeight: 600,
+                            fontSize: 15, lineHeight: 1.3, color: "#11262f",
+                          }}>
+                            {it.is_veg !== undefined && (
+                              <span style={{
+                                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                                width: 13, height: 13, borderRadius: 2, flexShrink: 0,
+                                border: `2px solid ${it.is_veg ? "#2f7d4f" : "#c0392b"}`,
+                              }}>
+                                <span style={{ width: 6, height: 6, borderRadius: "50%", background: it.is_veg ? "#2f7d4f" : "#c0392b" }} />
+                              </span>
+                            )}
+                            {it.name}
+                            {it.tag && <TagPill tag={it.tag} />}
+                            {it.is_popular && <span style={{ fontSize: 10 }}>🔥</span>}
+                            {it.is_chef_special && <span style={{ fontSize: 9, fontWeight: 700, color: RUST }}>★</span>}
+                            {(it.spice_level ?? 0) > 0 && (
+                              <span style={{ fontSize: 10 }}>{"🌶".repeat(Math.min(it.spice_level ?? 0, 4))}</span>
+                            )}
+                          </span>
+                          {it.description && (
                             <span style={{
-                              display: "inline-flex", alignItems: "center", justifyContent: "center",
-                              width: 13, height: 13, borderRadius: 2, flexShrink: 0,
-                              border: `2px solid ${it.is_veg ? "#2f7d4f" : "#c0392b"}`,
+                              display: "block",
+                              fontFamily: "var(--font-hanken), system-ui, sans-serif",
+                              fontSize: 12, color: "rgba(17,38,47,.55)", lineHeight: 1.45, marginTop: 2,
                             }}>
-                              <span style={{ width: 6, height: 6, borderRadius: "50%", background: it.is_veg ? "#2f7d4f" : "#c0392b" }} />
+                              {it.description}
                             </span>
                           )}
-                          {it.name}
-                          {it.tag && <TagPill tag={it.tag} />}
-                          {it.is_popular && <span style={{ fontSize: 10 }}>🔥</span>}
-                          {it.is_chef_special && <span style={{ fontSize: 9, fontWeight: 700, color: RUST }}>★</span>}
-                          {(it.spice_level ?? 0) > 0 && (
-                            <span style={{ fontSize: 10 }}>{"🌶".repeat(Math.min(it.spice_level ?? 0, 4))}</span>
-                          )}
                         </span>
-                        {it.description && (
+                        <span style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
                           <span style={{
-                            display: "block",
-                            fontFamily: "var(--font-hanken), system-ui, sans-serif",
-                            fontSize: 12, color: "rgba(17,38,47,.55)", lineHeight: 1.45, marginTop: 2,
+                            fontFamily: "var(--font-anton), sans-serif", fontSize: 17,
+                            color: RUST, whiteSpace: "nowrap", paddingTop: 2,
                           }}>
-                            {it.description}
+                            {it.price}
                           </span>
-                        )}
-                      </span>
-                      <span style={{
-                        fontFamily: "var(--font-anton), sans-serif", fontSize: 17,
-                        color: RUST, whiteSpace: "nowrap", alignSelf: "flex-start", paddingTop: 2,
-                      }}>
-                        {it.price}
-                      </span>
-                    </li>
-                  ))}
+                          {/* tap hint chevron */}
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                            stroke="rgba(17,38,47,.35)" strokeWidth="2.5" strokeLinecap="round">
+                            <polyline points="9 18 15 12 9 6" />
+                          </svg>
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ul>
               </Reveal>
             ))}
@@ -425,6 +626,15 @@ export default function MenuExplorer({
           </p>
         </div>
       </section>
+
+      {/* ══════════ MOBILE item popup ══════════ */}
+      {selectedItem && (
+        <ItemPopup
+          entry={selectedItem.entry}
+          index={selectedItem.index}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
     </>
   );
 }
