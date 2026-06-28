@@ -184,7 +184,7 @@ function FoodCard({ entry, index }: { entry: Entry; index: number }) {
   );
 }
 
-/* ── mobile item popup / bottom sheet ────────────────────────── */
+/* ── mobile item popup — oval pill card (same shape as desktop) ── */
 function ItemPopup({ entry, index, onClose }: { entry: Entry; index: number; onClose: () => void }) {
   const palette = CARD_PALETTE[index % CARD_PALETTE.length];
   const b = badgeFor(entry);
@@ -214,131 +214,124 @@ function ItemPopup({ entry, index, onClose }: { entry: Entry; index: number; onC
       onClick={onClose}
       style={{
         position: "fixed", inset: 0, zIndex: 20000,
-        background: "rgba(7,24,33,.72)",
-        backdropFilter: "blur(5px)",
-        WebkitBackdropFilter: "blur(5px)",
-        display: "flex", alignItems: "flex-end",
+        background: "rgba(7,24,33,.82)",
+        backdropFilter: "blur(6px)",
+        WebkitBackdropFilter: "blur(6px)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "24px 28px",
         animation: "vcm-overlay-in .22s ease both",
       }}
     >
+      {/* scroll wrapper — overflow here, NOT on the article, so border-radius
+          doesn't clip the badge that bleeds outside the pill corner */}
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: "100%",
-          maxHeight: "88dvh",
+          width: "100%", maxWidth: 320,
+          maxHeight: "calc(100dvh - 48px)",
           overflowY: "auto",
           overscrollBehavior: "contain",
-          background: palette.card,
-          borderRadius: "26px 26px 0 0",
-          paddingBottom: "env(safe-area-inset-bottom, 24px)",
-          animation: "vcm-sheet-up .38s cubic-bezier(.16,1,.3,1) both",
-          position: "relative",
+          animation: "vcm-card-pop .4s cubic-bezier(.16,1,.3,1) both",
         }}
       >
-        {/* drag handle pill */}
-        <div style={{
-          width: 40, height: 4, borderRadius: 2,
-          background: "rgba(17,38,47,.22)",
-          margin: "14px auto 0",
-        }} />
-
-        {/* close button */}
-        <button
-          onClick={onClose}
-          aria-label="Close"
+        {/* oval pill card — overflow:visible (default) so children aren't clipped
+            by the border-radius; background is still painted within the pill shape */}
+        <article
           style={{
-            position: "absolute", top: 14, right: 16,
-            width: 34, height: 34, borderRadius: "50%",
-            background: "rgba(17,38,47,.14)", border: "none",
-            cursor: "pointer", fontSize: 16, color: "#11262f",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            lineHeight: 1,
+            background: palette.card,
+            borderRadius: 200,
+            padding: "28px 32px 52px",
+            display: "flex", flexDirection: "column",
+            alignItems: "center", textAlign: "center",
+            position: "relative",
           }}
         >
-          ✕
-        </button>
-
-        {/* card content */}
-        <div style={{ padding: "18px 28px 36px", textAlign: "center" }}>
-          {/* category / tag badge */}
+          {/* badge — centered at top, in normal flow */}
           <div style={{
-            display: "inline-block",
             background: b.bg, color: b.color,
             fontFamily: "var(--font-baloo), sans-serif", fontWeight: 700,
-            fontSize: 11, padding: "5px 14px", borderRadius: 100, letterSpacing: ".04em",
-            boxShadow: "0 2px 8px rgba(0,0,0,.13)", marginBottom: 22,
+            fontSize: 11, padding: "5px 13px", borderRadius: 100, letterSpacing: ".04em",
+            boxShadow: "0 2px 8px rgba(0,0,0,.15)",
+            marginBottom: 16,
           }}>
             {b.label}
           </div>
 
-          {/* dish image disc */}
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <DishDisc img={entry.img} emoji={entry.cat.emoji} disc={palette.disc} size={200} />
-          </div>
+          {/* close ✕ — absolute top-right, also floats outside pill corner over the dark backdrop */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onClose(); }}
+            aria-label="Close"
+            style={{
+              position: "absolute", top: 20, right: 20,
+              width: 30, height: 30, borderRadius: "50%",
+              background: "rgba(7,24,33,.55)", border: "none", cursor: "pointer",
+              fontSize: 14, color: CREAM,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              lineHeight: 1,
+            }}
+          >
+            ✕
+          </button>
 
-          {/* name + veg indicator */}
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "center",
-            gap: 8, margin: "4px 0 10px",
-          }}>
-            {entry.is_veg !== undefined && (
-              <div style={{
-                width: 20, height: 20, borderRadius: 4, flexShrink: 0,
-                border: `2.5px solid ${entry.is_veg ? "#2f7d4f" : "#c0392b"}`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                background: "rgba(255,255,255,.85)",
-              }}>
-                <div style={{ width: 9, height: 9, borderRadius: "50%", background: entry.is_veg ? "#2f7d4f" : "#c0392b" }} />
-              </div>
-            )}
-            <h2 style={{
-              fontFamily: "var(--font-baloo), sans-serif", fontWeight: 800,
-              fontSize: 26, color: "#11262f", margin: 0, lineHeight: 1.15,
+        {/* image disc */}
+        <div style={{ marginTop: 0 }}>
+          <DishDisc img={entry.img} emoji={entry.cat.emoji} disc={palette.disc} size={190} />
+        </div>
+
+        {/* name + veg indicator */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, margin: "0 0 6px" }}>
+          {entry.is_veg !== undefined && (
+            <div style={{
+              flexShrink: 0, width: 18, height: 18, borderRadius: 3,
+              border: `2px solid ${entry.is_veg ? "#2f7d4f" : "#c0392b"}`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: "rgba(255,255,255,.85)",
             }}>
-              {entry.name}
-            </h2>
-          </div>
-
-          {/* full description (no clamp) */}
-          {entry.description && (
-            <p style={{
-              fontFamily: "var(--font-hanken), system-ui, sans-serif",
-              fontSize: 14, color: "rgba(17,38,47,.58)", lineHeight: 1.6,
-              margin: "0 0 18px", padding: "0 4px",
-            }}>
-              {entry.description}
-            </p>
-          )}
-
-          {/* meta badges row */}
-          {(entry.is_popular || entry.is_chef_special || spice > 0) && (
-            <div style={{ display: "flex", gap: 7, justifyContent: "center", flexWrap: "wrap", marginBottom: 18 }}>
-              {entry.is_popular && (
-                <span style={{ ...metaBadge, background: "#0b2c39", color: GOLD }}>
-                  🔥 Popular
-                </span>
-              )}
-              {entry.is_chef_special && (
-                <span style={{ ...metaBadge, background: RUST, color: "#fff" }}>
-                  ★ Chef&apos;s Special
-                </span>
-              )}
-              {spice > 0 && (
-                <span style={{ fontSize: 18, letterSpacing: 2 }}>
-                  {"🌶".repeat(spice)}
-                </span>
-              )}
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: entry.is_veg ? "#2f7d4f" : "#c0392b" }} />
             </div>
           )}
-
-          {/* price */}
-          <div style={{
-            fontFamily: "var(--font-anton), sans-serif",
-            fontSize: 42, color: RUST, lineHeight: 1,
+          <h2 style={{
+            fontFamily: "var(--font-baloo), sans-serif", fontWeight: 800,
+            color: "#11262f", fontSize: 21, margin: 0, lineHeight: 1.2,
           }}>
-            {entry.price}
-          </div>
+            {entry.name}
+          </h2>
         </div>
+
+        {/* description */}
+        {entry.description && (
+          <p style={{
+            fontFamily: "var(--font-hanken), system-ui, sans-serif",
+            fontSize: 12, color: "rgba(17,38,47,.6)", lineHeight: 1.5,
+            margin: "0 0 10px", padding: "0 6px",
+          }}>
+            {entry.description}
+          </p>
+        )}
+
+        {/* meta badges */}
+        {(entry.is_popular || entry.is_chef_special || spice > 0) && (
+          <div style={{ display: "flex", gap: 5, justifyContent: "center", flexWrap: "wrap", marginBottom: 8 }}>
+            {entry.is_popular && (
+              <span style={{ ...metaBadge, background: "#0b2c39", color: GOLD }}>🔥 Popular</span>
+            )}
+            {entry.is_chef_special && (
+              <span style={{ ...metaBadge, background: RUST, color: "#fff" }}>★ Chef&apos;s Special</span>
+            )}
+            {spice > 0 && (
+              <span style={{ fontSize: 13, letterSpacing: 1 }}>{"🌶".repeat(spice)}</span>
+            )}
+          </div>
+        )}
+
+        {/* price */}
+        <div style={{
+          fontFamily: "var(--font-anton), sans-serif",
+          fontSize: 34, color: RUST, marginTop: 4, lineHeight: 1,
+        }}>
+          {entry.price}
+        </div>
+        </article>
       </div>
     </div>
   );
@@ -407,9 +400,9 @@ export default function MenuExplorer({
           from { opacity: 0 }
           to   { opacity: 1 }
         }
-        @keyframes vcm-sheet-up {
-          from { transform: translateY(100%) }
-          to   { transform: translateY(0) }
+        @keyframes vcm-card-pop {
+          from { transform: translateY(56px) scale(0.88); opacity: 0 }
+          to   { transform: translateY(0) scale(1); opacity: 1 }
         }
 
         /* touch feedback on mobile list rows */

@@ -108,7 +108,7 @@ export default function GalleryWall({ items }: { items: GalleryImage[] }) {
 
       {/* CSS-columns masonry → varied photo heights collage, fully fluid with no
           media queries (column-width auto-fits the viewport). */}
-      <div style={{ columnWidth: 270, columnGap: 18, transform: "translateZ(0)", isolation: "isolate" }}>
+      <div style={{ columnWidth: 270, columnGap: 18 }}>
         {filtered.map((it, i) => {
           const mat = MATS[i % MATS.length];
           const rot = ROTS[i % ROTS.length];
@@ -118,7 +118,7 @@ export default function GalleryWall({ items }: { items: GalleryImage[] }) {
               key={it.id}
               y={36}
               delay={(i % 4) * 70}
-              style={{ breakInside: "avoid", marginBottom: 18, willChange: "transform, opacity" }}
+              style={{ breakInside: "avoid", marginBottom: 18 }}
             >
               <button
                 className="vc-gal-tile"

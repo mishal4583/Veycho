@@ -251,8 +251,6 @@ html.lenis body {
      cursor movement never trigger a main-thread repaint (fixes jitter on Windows
      laptops using fractional display scaling such as 125%). */
   will-change: transform;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
 }
 .vc-gal-tile:hover {
   transform: translateY(-10px) scale(1.02) rotate(0deg) translateZ(0);
