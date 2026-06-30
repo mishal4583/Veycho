@@ -22,8 +22,28 @@ export default function SettingsAdmin() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  // Favicon — stored in site_content "branding" section, read by layout.tsx
+  const faviconQuery = useQuery({
+    queryKey: ["branding_favicon"],
+    queryFn: async () => {
+      const { data } = await supabase.from("site_content").select("data").eq("section", "branding").maybeSingle();
+      return (data?.data as { favicon_url?: string } | null)?.favicon_url ?? null;
+    },
+  });
+  const [faviconUploading, setFaviconUploading] = useState(false);
+
+  const saveFavicon = useMutation({
+    mutationFn: async (url: string) => {
+      const { error } = await supabase.from("site_content").upsert({ section: "branding", data: { favicon_url: url } }, { onConflict: "section" });
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["branding_favicon"] }); toast.success("Favicon updated — live within ~1 minute"); },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   if (!form) return <Loader2 className="h-6 w-6 animate-spin text-gold" />;
   const social = form.social_links_json ?? {};
+  const currentFavicon = faviconQuery.data ?? "/icon.png";
 
   return (
     <div className="max-w-2xl">
@@ -46,6 +66,60 @@ export default function SettingsAdmin() {
           <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (!f) return; try { const { url } = await uploadImage("logos", f); setForm({ ...form, logo_url: url }); } catch (err: any) { toast.error(err.message); } }} className="text-sm" />
         </div>
         <button onClick={() => save.mutate()} disabled={save.isPending} className="inline-flex items-center gap-2 bg-gold px-6 py-3 text-xs uppercase tracking-[0.3em] text-gold-foreground">{save.isPending && <Loader2 className="h-4 w-4 animate-spin" />} Save</button>
+      </div>
+
+      {/* ---- Favicon / App icon ---- */}
+      <div className="mt-10 pt-8 border-t border-border/60">
+        <h2 className="font-serif text-xl mb-1">Favicon &amp; App icon</h2>
+        <p className="text-xs text-muted-foreground mb-5">
+          Shown in browser tabs and as the home-screen icon when someone bookmarks the site.
+          Recommended: square PNG, 512×512. Takes effect within ~1 minute of saving.
+        </p>
+        <div className="flex items-start gap-5">
+          {/* preview */}
+          <div className="flex-none">
+            <div className="w-16 h-16 rounded-xl border border-border/60 bg-surface overflow-hidden flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img key={currentFavicon} src={currentFavicon} alt="Current favicon" className="w-full h-full object-contain" />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1 text-center">Current</p>
+          </div>
+          {/* upload */}
+          <div className="flex flex-col gap-2">
+            <label className="inline-flex items-center gap-2 cursor-pointer">
+              <span className="inline-flex items-center gap-1.5 bg-surface border border-border/60 hover:border-gold/60 hover:text-gold px-4 py-2 text-xs rounded transition-colors">
+                {faviconUploading
+                  ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                }
+                {faviconUploading ? "Uploading…" : "Choose new icon"}
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                disabled={faviconUploading || saveFavicon.isPending}
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  if (!f) return;
+                  setFaviconUploading(true);
+                  try {
+                    const { url } = await uploadImage("site-media", f);
+                    saveFavicon.mutate(url);
+                  } catch (err: any) {
+                    toast.error(err.message);
+                  } finally {
+                    setFaviconUploading(false);
+                    e.target.value = "";
+                  }
+                }}
+              />
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Upload replaces the current icon immediately — no deploy needed.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
