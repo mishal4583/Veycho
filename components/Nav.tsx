@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { scrollToId } from "@/lib/scroll";
 import { DEFAULT_CONTENT, type NavContent } from "@/lib/content-defaults";
 import { WAVES, WAVE_DEPTH, WAVE_TILE, waveBg } from "@/lib/wave";
@@ -115,10 +115,12 @@ export default function Nav({
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [isMobile, setIsMobile] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const isMobileRef = useRef(false);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 760px)");
     const apply = () => {
+      isMobileRef.current = mq.matches;
       setIsMobile(mq.matches);
       if (!mq.matches) setMenuOpen(false); // never strand the overlay open on desktop
     };
@@ -133,6 +135,10 @@ export default function Nav({
 
     const update = () => {
       raf = 0;
+      // On mobile the sticker is always dark-themed — skip the DOM probe to
+      // avoid triggering a React re-render on every scroll tick (main-thread
+      // work during scroll contributes to iOS Safari fixed-element jitter).
+      if (isMobileRef.current) return;
       const sections = Array.from(
         document.querySelectorAll<HTMLElement>("#vc-stack > *")
       );
@@ -313,6 +319,7 @@ export default function Nav({
             transform: menuOpen ? "rotate(2deg) scale(1.04)" : "rotate(-5deg)",
             transition: "transform .45s cubic-bezier(.34,1.3,.5,1)",
             filter: "drop-shadow(0 10px 20px rgba(0,0,0,.34))",
+            willChange: "transform",
           }}
         >
           {/* wavy teal blob with a gold hand-drawn outline */}

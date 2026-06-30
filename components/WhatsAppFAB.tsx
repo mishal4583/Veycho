@@ -41,6 +41,7 @@ const fabBase = {
   border: `2px solid ${GOLD}`,
   textDecoration: "none",
   transition: "background .25s ease, color .25s ease, box-shadow .25s ease, transform .25s ease",
+  willChange: "transform",
 };
 
 export default function WhatsAppFAB({ phone, instagram }: { phone: string; instagram?: string }) {
@@ -69,7 +70,7 @@ export default function WhatsAppFAB({ phone, instagram }: { phone: string; insta
             boxShadow: igHovered
               ? "0 6px 24px rgba(220,39,67,.35)"
               : "0 4px 16px rgba(0,0,0,.45)",
-            transform: igHovered ? "scale(1.08)" : "scale(1)",
+            transform: igHovered ? "scale(1.08) translateZ(0)" : "translateZ(0)",
           }}
         >
           <IgIcon size={22} />
@@ -91,7 +92,7 @@ export default function WhatsAppFAB({ phone, instagram }: { phone: string; insta
           boxShadow: waHovered
             ? "0 6px 24px rgba(237,182,63,.4)"
             : "0 4px 16px rgba(0,0,0,.45)",
-          transform: waHovered ? "scale(1.08)" : "scale(1)",
+          transform: waHovered ? "scale(1.08) translateZ(0)" : "translateZ(0)",
         }}
       >
         <WhatsAppIcon size={26} />
